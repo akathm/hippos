@@ -1,10 +1,13 @@
 import streamlit as st
 import pandas as pd
+import numpy as np
+import altair as alt
 import requests
 
 st.set_page_config(page_title='KYC Lookup Tool', page_icon='🗝️')
 st.title('🗝️ KYC Lookup Tool')
 
+@st.cache
 def fetch_data(api_key, endpoint_url):
     data = []
     headers = {"Authorization": f"Bearer {api_key}"}
@@ -61,18 +64,21 @@ def process_data(data):
 
 def main():
     st.title('KYC Individuals Table')
-    api_key = st.secrets.get("persona", {}).get("api_key", '')
-    if api_key:
-        inquiries_data = fetch_data(api_key, "https://app.withpersona.com/api/v1/inquiries")
-       ## cases_data = fetch_data(api_key, "https://app.withpersona.com/api/v1/cases")
-
-        if inquiries_data: ## and cases_data:
-            df = process_data(inquiries_data) ##+ cases_data)
-            st.dataframe(df)
-        else:
-            st.error("No data retrieved.")
+    api_key = st.secrets["persona"]["api_key"]
+    refresh_button = st.button("Refresh Data")
+    
+    if refresh_button:
+        inquiries_data = fetch_data(api_key, "https://app.withpersona.com/api/v1/inquiries?refresh=true")
+        ## cases_data = fetch_data(api_key, "https://app.withpersona.com/api/v1/cases?refresh=true")
     else:
-        st.error("API key not found.")
+        inquiries_data = fetch_data(api_key, "https://app.withpersona.com/api/v1/inquiries")
+        ## cases_data = fetch_data(api_key, "https://app.withpersona.com/api/v1/cases")
+    
+    if inquiries_data: ## and cases_data:
+        df = process_data(inquiries_data) ## + cases_data)
+        st.dataframe(df)
+    else:
+        st.error("No data retrieved.")
 
 if __name__ == '__main__':
     main()
