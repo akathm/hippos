@@ -15,7 +15,7 @@ def fetch_data(api_key, endpoint_url):
             response = requests.get(endpoint_url, headers=headers, params=params)
             if response.status_code == 200:
                 response_data = response.json()
-                st.write(f"Response JSON: {response_data}")  # Debugging output
+                st.write(f"Response JSON: {response_data}")
                 if isinstance(response_data.get('data'), list):
                     filtered_data = [
                         item for item in response_data['data'] 
@@ -59,15 +59,16 @@ def process_data(data):
         })
     return pd.DataFrame(records)
 
+
 def main():
     st.title('KYC Individuals Table')
     api_key = st.secrets.get("persona", {}).get("api_key", '')
     if api_key:
         inquiries_data = fetch_data(api_key, "https://app.withpersona.com/api/v1/inquiries")
-        cases_data = fetch_data(api_key, "https://app.withpersona.com/api/v1/cases")
+       ## cases_data = fetch_data(api_key, "https://app.withpersona.com/api/v1/cases")
 
-        if inquiries_data and cases_data:
-            df = process_data(inquiries_data + cases_data)
+        if inquiries_data ## and cases_data:
+            df = process_data(inquiries_data) ##+ cases_data)
             st.dataframe(df)
         else:
             st.error("No data retrieved.")
