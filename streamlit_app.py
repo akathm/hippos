@@ -1,7 +1,5 @@
 import streamlit as st
-import numpy as np
 import pandas as pd
-import altair as alt
 import requests
 
 st.set_page_config(page_title='KYC Lookup Tool', page_icon='🗝️')
@@ -18,8 +16,11 @@ def fetch_data(api_key, endpoint_url):
             if response.status_code == 200:
                 response_data = response.json()
                 st.write(f"Response JSON: {response_data}")  # Debugging output
-                if 'data' in response_data:
-                    filtered_data = [item for item in response_data['data'] if item.get('attributes', {}).get('status') != 'created']
+                if isinstance(response_data.get('data'), list):
+                    filtered_data = [
+                        item for item in response_data['data'] 
+                        if item.get('attributes', {}).get('status') != 'created'
+                    ]
                     data.extend(filtered_data)
                 if 'links' in response_data and 'next' in response_data['links']:
                     next_page_url = response_data['links']['next']
@@ -37,15 +38,15 @@ def fetch_data(api_key, endpoint_url):
 def process_data(data):
     records = []
     for item in data:
-        inquiry_id = item['id']
+        inquiry_id = item.get('id', '')
         attributes = item.get('attributes', {})
         name_first = attributes.get('name-first', '') or ''
         name_middle = attributes.get('name-middle', '') or ''
         name_last = attributes.get('name-last', '') or ''
         name = f"{name_first} {name_middle} {name_last}".strip()
         email_address = attributes.get('email-address', '') or ''
-        updated_at = attributes.get('updated-at')
-        status = attributes.get('status')
+        updated_at = attributes.get('updated-at', '')
+        status = attributes.get('status', '')
         l2_address = attributes.get('fields', {}).get('l-2-address', {}).get('value', '')
 
         records.append({
@@ -60,15 +61,18 @@ def process_data(data):
 
 def main():
     st.title('KYC Individuals Table')
-    api_key = st.secrets["persona"]["api_key"]
-    inquiries_data = fetch_data(api_key, "https://app.withpersona.com/api/v1/inquiries")
-    cases_data = fetch_data(api_key, "https://app.withpersona.com/api/v1/cases")
-    
-    if inquiries_data and cases_data:
-        df = process_data(inquiries_data + cases_data)
-        st.dataframe(df)
+    api_key = st.secrets.get("persona", {}).get("api_key", '')
+    if api_key:
+        inquiries_data = fetch_data(api_key, "https://app.withpersona.com/api/v1/inquiries")
+        cases_data = fetch_data(api_key, "https://app.withpersona.com/api/v1/cases")
+
+        if inquiries_data and cases_data:
+            df = process_data(inquiries_data + cases_data)
+            st.dataframe(df)
+        else:
+            st.error("No data retrieved.")
     else:
-        st.error("No data retrieved.")
+        st.error("API key not found.")
 
 if __name__ == '__main__':
     main()
