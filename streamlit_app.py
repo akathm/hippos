@@ -67,7 +67,7 @@ def main():
         inquiries_data = fetch_data(api_key, "https://app.withpersona.com/api/v1/inquiries")
        ## cases_data = fetch_data(api_key, "https://app.withpersona.com/api/v1/cases")
 
-        if inquiries_data ## and cases_data:
+        if inquiries_data: ## and cases_data:
             df = process_data(inquiries_data) ##+ cases_data)
             st.dataframe(df)
         else:
