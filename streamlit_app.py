@@ -17,6 +17,7 @@ def fetch_data(api_key, endpoint_url):
             response = requests.get(endpoint_url, headers=headers, params=params)
             if response.status_code == 200:
                 response_data = response.json()
+                st.write(f"Response JSON: {response_data}")  # Debugging output
                 if 'data' in response_data:
                     filtered_data = [item for item in response_data['data'] if item.get('attributes', {}).get('status') != 'created']
                     data.extend(filtered_data)
