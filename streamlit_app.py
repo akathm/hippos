@@ -2,10 +2,93 @@ import streamlit as st
 import numpy as np
 import pandas as pd
 import altair as alt
+import requests
 
-# Page title
-st.set_page_config(page_title='Interactive Data Explorer', page_icon='📊')
-st.title('📊 Interactive Data Explorer')
+st.set_page_config(page_title='KYC Lookup Tool', page_icon='🗝️')
+st.title('🗝️ KYC Lookup Tool')
+
+def fetch_inquiries(api_key):
+    inquiries = []
+    base_url = "https://app.withpersona.com/api/v1/inquiries"
+    headers = {"Authorization": f"Bearer {api_key}"}
+    params = {"page[limit]": 100}
+
+    while True:
+        response = requests.get(base_url, headers=headers, params=params)
+        response_data = response.json()
+        
+        if 'data' in response_data:
+            filtered_inquiries = [inquiry for inquiry in response_data['data'] if inquiry['attributes']['status'] != 'created']
+            inquiries.extend(filtered_inquiries)
+        if 'links' in response_data and 'next' in response_data['links']:
+            next_page_url = response_data['links']['next']
+            params = dict([param.split('=') for param in next_page_url.split('?')[1].split('&')])
+        else:
+            break
+
+    return inquiries
+
+def fetch_cases(api_key):
+    cases = []
+    base_url = "https://app.withpersona.com/api/v1/cases"
+    headers = {"Authorization": f"Bearer {api_key}"}
+    params = {"page[limit]": 100}
+
+    while True:
+        response = requests.get(base_url, headers=headers, params=params)
+        response_data = response.json()
+        
+        if 'data' in response_data:
+            filtered_cases = [inquiry for inquiry in response_data['data'] if inquiry['attributes']['status'] != 'open']
+            inquiries.extend(filtered_cases)
+        if 'links' in response_data and 'next' in response_data['links']:
+            next_page_url = response_data['links']['next']
+            params = dict([param.split('=') for param in next_page_url.split('?')[1].split('&')])
+        else:
+            break
+
+    return cases
+
+def process_data(data):
+    records = []
+    for item in data['data']:
+        inquiry_id = item['id']
+        attributes = item['attributes']
+        name_first = attributes.get('name-first', '') or ''
+        name_middle = attributes.get('name-middle', '') or ''
+        name_last = attributes.get('name-last', '') or ''
+        name = f"{name_first} {name_middle} {name_last}".strip()
+        email_address = attributes.get('email-address', '') or ''
+        updated_at = attributes.get('updated-at')
+        status = attributes.get('status')
+        l2_address = attributes.get('fields', {}).get('l-2-address', {}).get('value', '')
+
+        records.append({
+            'inquiry_id': inquiry_id,
+            'name': name,
+            'email_address': email_address,
+            'l2_address': l2_address,
+            'updated_at': updated_at,
+            'status': status
+        })
+    return pd.DataFrame(records)
+
+def main():
+    st.title('KYC Individuals Table')
+    api_key = st.secrets["persona"]["api_key"]
+    try:
+        data = fetch_inquiries(api_key)
+        data = fetch_cases(api_key)
+        df = process_data(data)
+        st.dataframe(df)
+    except Exception as e:
+        st.error(f"Error fetching data: {e}")
+
+if __name__ == '__main__':
+    main()
+
+
+_="""
 
 with st.expander('About this app'):
   st.markdown('**What can this app do?**')
@@ -48,3 +131,4 @@ chart = alt.Chart(df_chart).mark_line().encode(
             color='genre:N'
             ).properties(height=320)
 st.altair_chart(chart, use_container_width=True)
+"""
