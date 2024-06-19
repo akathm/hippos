@@ -22,7 +22,7 @@ def fetch_data(api_key, endpoint_url):
                     for item in response_data['data']:
                         attributes = item.get('attributes', {})
                         status = attributes.get('status')
-                        if status != 'created':
+                        if status not in ['created', 'completed]:
                             data.append(item)
                 if 'links' in response_data and 'next' in response_data['links']:
                     next_page_url = response_data['links']['next']
@@ -65,7 +65,7 @@ def process_data(data):
 def main():
     st.title('KYC Individuals Table')
     api_key = st.secrets["persona"]["api_key"]
-    refresh_button = st.button("Refresh Data")
+    refresh_button = st.button("Refresh")
     
     if refresh_button:
         inquiries_data = fetch_data(api_key, "https://app.withpersona.com/api/v1/inquiries?refresh=true")
