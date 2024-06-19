@@ -15,13 +15,12 @@ def fetch_data(api_key, endpoint_url):
             response = requests.get(endpoint_url, headers=headers, params=params)
             if response.status_code == 200:
                 response_data = response.json()
-                st.write(f"Response JSON: {response_data}")
-                if isinstance(response_data.get('data'), list):
-                    filtered_data = [
-                        item for item in response_data['data'] 
-                        if item.get('attributes', {}).get('status') != 'created'
-                    ]
-                    data.extend(filtered_data)
+                if 'data' in response_data:
+                    for item in response_data['data']:
+                        attributes = item.get('attributes', {})
+                        status = attributes.get('status')
+                        if status != 'created':
+                            data.append(item)
                 if 'links' in response_data and 'next' in response_data['links']:
                     next_page_url = response_data['links']['next']
                     params = dict([param.split('=') for param in next_page_url.split('?')[1].split('&')])
