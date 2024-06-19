@@ -88,7 +88,35 @@ if __name__ == '__main__':
     main()
 
 
-_="""
+
+_ = """
+
+
+def fetch_cases(api_key):
+    cases = []
+    base_url = "https://app.withpersona.com/api/v1/cases"
+    headers = {"Authorization": f"Bearer {api_key}"}
+    params = {"page[limit]": 100}
+
+    while True:
+        response = requests.get(base_url, headers=headers, params=params)
+        if response.status_code != 200:
+            st.error(f"Error fetching cases: {response.status_code}")
+            return []
+        
+        response_data = response.json()
+
+        if 'data' in response_data:
+            filtered_cases = [case for case in response_data['data'] if case['attributes']['status'] != 'open']
+            cases.extend(filtered_cases)
+        if 'links' in response_data and 'next' in response_data['links']:
+            next_page_url = response_data['links']['next']
+            params = dict([param.split('=') for param in next_page_url.split('?')[1].split('&')])
+        else:
+            break
+
+    return cases
+
 
 with st.expander('About this app'):
   st.markdown('**What can this app do?**')
