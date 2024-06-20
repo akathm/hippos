@@ -37,7 +37,7 @@ def fetch_data(api_key, endpoint_url):
 
     return data
 
-def process_data(data):
+def process_inquiries(data):
     records = {}
     for item in data:
         inquiry_id = item['id']
@@ -60,9 +60,29 @@ def process_data(data):
                 'updated_at': updated_at,
                 'status': status
             }
-            
+
     return pd.DataFrame.from_dict(records.values())
 
+def process_cases(data):
+    records = {}
+    for item in data:
+        case_id = item['id']
+        attributes = item.get('attributes', {})
+        status = attributes.get('status')
+        business_name = attributes.get('name', '')
+        updated_at = attributes.get('updated-at')
+        
+        if case_id not in records:
+            records[case_id] = {
+                'case_id': case_id,
+                'business_name': business_name,
+                'email_address': '',  # Placeholder, as email address data is not provided in the JSON response
+                'l2_address': '',  # Placeholder, as l2_address data is not provided in the JSON response
+                'updated_at': updated_at,
+                'status': status
+            }
+            
+    return pd.DataFrame.from_dict(records.values())
 
 def main():
     st.title('KYC Individuals Table')
@@ -71,14 +91,17 @@ def main():
     
     if refresh_button:
         inquiries_data = fetch_data(api_key, "https://app.withpersona.com/api/v1/inquiries?refresh=true")
-        ## cases_data = fetch_data(api_key, "https://app.withpersona.com/api/v1/cases?refresh=true")
+        cases_data = fetch_data(api_key, "https://app.withpersona.com/api/v1/cases?refresh=true")
     else:
         inquiries_data = fetch_data(api_key, "https://app.withpersona.com/api/v1/inquiries")
-        ## cases_data = fetch_data(api_key, "https://app.withpersona.com/api/v1/cases")
+        cases_data = fetch_data(api_key, "https://app.withpersona.com/api/v1/cases")
     
-    if inquiries_data: ## and cases_data:
-        df = process_data(inquiries_data) ## + cases_data)
-        st.dataframe(df)
+    if inquiries_data and cases_data:
+        inquiries_df = process_inquiries(inquiries_data)
+        cases_df = process_cases(cases_data)
+        
+        merged_df = pd.concat([inquiries_df, cases_df], ignore_index=True)
+        st.dataframe(merged_df)
     else:
         st.error("No data retrieved.")
 
