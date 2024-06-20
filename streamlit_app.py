@@ -22,7 +22,7 @@ def fetch_data(api_key, endpoint_url):
                     for item in response_data['data']:
                         attributes = item.get('attributes', {})
                         status = attributes.get('status')
-                        if status not in ['created', 'completed']:
+                        if status not in ['created', 'completed', 'open']:
                             data.append(item)
                 if 'links' in response_data and 'next' in response_data['links']:
                     next_page_url = response_data['links']['next']
@@ -69,7 +69,8 @@ def process_cases(data):
         case_id = item['id']
         attributes = item.get('attributes', {})
         status = attributes.get('status')
-        business_name = attributes.get('name', '')
+        fields = attributes.get('fields', {})
+        business_name = fields.get('business-name', {}).get('value', '')
         updated_at = attributes.get('updated-at')
         
         if case_id not in records:
