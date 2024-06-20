@@ -22,7 +22,7 @@ def fetch_data(api_key, endpoint_url):
                     for item in response_data['data']:
                         attributes = item.get('attributes', {})
                         status = attributes.get('status')
-                        if status not in ['created', 'completed', 'open']:
+                        if status not in ['created', 'completed', 'Open']:
                             data.append(item)
                 if 'links' in response_data and 'next' in response_data['links']:
                     next_page_url = response_data['links']['next']
