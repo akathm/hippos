@@ -59,7 +59,7 @@ def process_data(data):
                 'l2_address': l2_address,
                 'updated_at': updated_at,
                 'status': status
-        })
+             }
     return pd.DataFrame(records)
 
 
