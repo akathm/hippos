@@ -38,17 +38,17 @@ def fetch_data(api_key, endpoint_url):
     return data
 
 def process_data(data):
-    records = []
+    records = {}
     for item in data:
-        inquiry_id = item.get('id', '')
+        inquiry_id = item['id']
         attributes = item.get('attributes', {})
         name_first = attributes.get('name-first', '') or ''
         name_middle = attributes.get('name-middle', '') or ''
         name_last = attributes.get('name-last', '') or ''
         name = f"{name_first} {name_middle} {name_last}".strip()
         email_address = attributes.get('email-address', '') or ''
-        updated_at = attributes.get('updated-at', '')
-        status = attributes.get('status', '')
+        updated_at = attributes.get('updated-at')
+        status = attributes.get('status')
         l2_address = attributes.get('fields', {}).get('l-2-address', {}).get('value', '')
 
         if inquiry_id not in records:
@@ -59,8 +59,9 @@ def process_data(data):
                 'l2_address': l2_address,
                 'updated_at': updated_at,
                 'status': status
-             }
-    return pd.DataFrame(records)
+            }
+            
+    return pd.DataFrame.from_dict(records.values())
 
 
 def main():
