@@ -51,13 +51,14 @@ def process_data(data):
         status = attributes.get('status', '')
         l2_address = attributes.get('fields', {}).get('l-2-address', {}).get('value', '')
 
-        records.append({
-            'inquiry_id': inquiry_id,
-            'name': name,
-            'email_address': email_address,
-            'l2_address': l2_address,
-            'updated_at': updated_at,
-            'status': status
+        if inquiry_id not in records:
+            records[inquiry_id] = {
+                'inquiry_id': inquiry_id,
+                'name': name,
+                'email_address': email_address,
+                'l2_address': l2_address,
+                'updated_at': updated_at,
+                'status': status
         })
     return pd.DataFrame(records)
 
