@@ -7,11 +7,10 @@ import requests
 st.set_page_config(page_title='KYC Lookup Tool', page_icon='🗝️')
 st.title('🗝️ KYC Lookup Tool')
 
-@st.cache
 def fetch_data(api_key, endpoint_url):
     data = []
     headers = {"Authorization": f"Bearer {api_key}"}
-    params = {"page[limit]": 100}
+    params = {"page[limit]": 100}  # Initial parameters
 
     try:
         while True:
@@ -19,14 +18,11 @@ def fetch_data(api_key, endpoint_url):
             if response.status_code == 200:
                 response_data = response.json()
                 if 'data' in response_data:
-                    for item in response_data['data']:
-                        attributes = item.get('attributes', {})
-                        status = attributes.get('status')
-                        if status not in ['created', 'completed', 'Open']:
-                            data.append(item)
+                    data.extend(response_data['data'])  # Append all data items to the list
                 if 'links' in response_data and 'next' in response_data['links']:
                     next_page_url = response_data['links']['next']
-                    params = dict([param.split('=') for param in next_page_url.split('?')[1].split('&')])
+                    # Extract query parameters from next_page_url and update params
+                    params = {param.split('=')[0]: param.split('=')[1] for param in next_page_url.split('?')[1].split('&')}
                 else:
                     break
             else:
