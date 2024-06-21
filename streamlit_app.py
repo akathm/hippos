@@ -3,9 +3,29 @@ import pandas as pd
 import numpy as np
 import altair as alt
 import requests
+from io import StringIO
 
 st.set_page_config(page_title='KYC Lookup Tool', page_icon='🗝️')
 st.title('🗝️ KYC Lookup Tool')
+
+access_token = st.secrets["github"]["access_token"]
+owner = "akathm"
+repo = "the-trojans"
+path = "main/grants.contributors.csv"
+url = f"https://api.github.com/repos/{owner}/{repo}/contents/{path}"
+headers = {
+    "Authorization": f"token {access_token}",
+    "Accept": "application/vnd.github.v3.raw"
+}
+
+response = requests.get(url, headers=headers)
+
+if response.status_code == 200:
+    csv_content = response.content.decode('utf-8')
+    df = pd.read_csv(StringIO(csv_content))
+    st.write(df)
+else:
+    st.error(f"Failed to fetch the file: {response.status_code}")
 
 def fetch_data(api_key, endpoint_url):
     data = []
