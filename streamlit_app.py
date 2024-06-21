@@ -11,7 +11,7 @@ st.title('🗝️ KYC Lookup Tool')
 access_token = st.secrets["github"]["access_token"]
 owner = "akathm"
 repo = "the-trojans"
-path = "main/grants.contributors.csv"
+path = "grants.contributors.csv"
 url = f"https://api.github.com/repos/{owner}/{repo}/contents/{path}"
 headers = {
     "Authorization": f"token {access_token}",
