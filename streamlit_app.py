@@ -164,24 +164,44 @@ else:
 
 st.subheader ('Individual Contributors')
 
+def fetch_csv(owner, repo, path, access_token):
+    url = f"https://api.github.com/repos/{owner}/{repo}/contents/{path}"
+    headers = {
+        "Authorization": f"token {access_token}",
+        "Accept": "application/vnd.github.v3.raw"
+    }
+    response = requests.get(url, headers=headers)
+    if response.status_code == 200:
+        csv_content = response.content.decode('utf-8')
+        df = pd.read_csv(StringIO(csv_content))
+        return df
+    else:
+        st.error(f"Failed to fetch the file from {path}: {response.status_code}")
+        return None
+
 access_token = st.secrets["github"]["access_token"]
 owner = "akathm"
 repo = "the-trojans"
-path = "grants.contributors.csv"
-url = f"https://api.github.com/repos/{owner}/{repo}/contents/{path}"
-headers = {
-    "Authorization": f"token {access_token}",
-    "Accept": "application/vnd.github.v3.raw"
-}
+contributors_path = "grants.contributors.csv"
+contributors_df = fetch_csv(owner, repo, contributors_path, access_token)
+persons_path = "legacy.persons.csv"
+persons_df = fetch_csv(owner, repo, persons_path, access_token)
 
-response = requests.get(url, headers=headers)
-
-if response.status_code == 200:
-    csv_content = response.content.decode('utf-8')
-    df = pd.read_csv(StringIO(csv_content))
-    projects_list = df.project_name.unique()
+if contributors_df is not None and persons_df is not None:
+    persons_df['status'] = persons_df.sort_values('updated_at').groupby('email')['status'].transform('last')
+    inconsistent_entries = persons_df.groupby('email')['document_name'].nunique() > 1
+    inconsistent_emails = inconsistent_entries[inconsistent_entries].index
+    persons_df.loc[persons_df['email'].isin(inconsistent_emails), 'status'] = 'error'
+    
+    merged_df = contributors_df.merge(persons_df[['email', 'status']], on='email', how='left')
+    
+    projects_list = merged_df['project_name'].unique()
     projects_selection = st.multiselect('Select the Contributor Path', projects_list, ['Ambassadors', 'NumbaNERDs', 'SupportNERDs', 'Translators', 'Badgeholders'])
-    st.write(df)
-else:
-    st.error(f"Failed to fetch the file: {response.status_code}")
+    
+    if projects_selection:
+        filtered_df = merged_df[merged_df['project_name'].isin(projects_selection)]
+    else:
+        filtered_df = merged_df
+    
+    st.write(filtered_df)
 
