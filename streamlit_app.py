@@ -28,7 +28,7 @@ else:
     st.error(f"Failed to fetch the file: {response.status_code}")
 
 
-def fetch_data(api_key, endpoint_url):
+def fetch_data(api_key, base_url):
     data = []
     headers = {"Authorization": f"Bearer {api_key}"}
     params = {"page[size]": 100}
