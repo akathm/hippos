@@ -188,7 +188,14 @@ contributors_path = "grants.contributors.csv"
 contributors_df = fetch_csv(owner, repo, contributors_path, access_token)
 persons_path = "legacy.persons.csv"
 persons_df = fetch_csv(owner, repo, persons_path, access_token)
-persons_df['updated_at'] = pd.to_datetime(persons_df['updated_at'])
+
+if persons_df is not None and 'updated_at' in persons_df.columns:
+    try:
+        persons_df['updated_at'] = persons_df['updated_at'].apply(lambda x: x.strip() if x.endswith('+00:00') else x + '+00:00')
+        persons_df['updated_at'] = pd.to_datetime(persons_df['updated_at'], format='%Y-%m-%d %H:%M:%S%z')
+    except Exception as e:
+        st.error(f"Error converting 'updated_at' to datetime: {e}")
+        st.stop()
 
 if contributors_df is not None and persons_df is not None:
     persons_df['status'] = persons_df.sort_values('updated_at').groupby('email')['status'].transform('last')
