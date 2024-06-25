@@ -121,19 +121,11 @@ def main():
         st.dataframe(merged_df)
         
         st.sidebar.header("Lookup Tool")
-        search_type = st.sidebar.selectbox("Search by", ["Name", "L2 Address", "Email", "Business Name"])
-        search_input = st.sidebar.text_input("Enter your search value")
-        
-        if st.sidebar.button("Search"):
-            if search_type == "Name":
-                results = merged_df[merged_df['name'].str.contains(search_input, case=False, na=False)]
-            elif search_type == "L2 Address":
-                results = merged_df[merged_df['l2_address'].str.contains(search_input, case=False, na=False)]
-            elif search_type == "Email":
-                results = merged_df[merged_df['email_address'].str.contains(search_input, case=False, na=False)]
-            elif search_type == "Business Name":
-                results = merged_df[merged_df['business_name'].str.contains(search_input, case=False, na=False)]
-            
+        search_input = st.sidebar.text_input("Enter name, L2 address, or email to search")
+
+        if st.sidebar.button("Search") and search_input:
+            results = merged_df[merged_df.apply(lambda row: any(search_input.lower() in str(row[col]).lower() for col in ['name', 'l2_address', 'email_address']), axis=1)]
+
             if not results.empty:
                 for _, row in results.iterrows():
                     if row['status'] == 'approved':
@@ -148,8 +140,6 @@ def main():
                             st.write(f"Message: KYB Status is Pending")
             else:
                 st.write("No results found.")
-    else:
-        st.error("No data retrieved.")
 
 if __name__ == '__main__':
     main()
