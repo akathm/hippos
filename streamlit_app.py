@@ -191,7 +191,7 @@ persons_df = fetch_csv(owner, repo, persons_path, access_token)
 if persons_df is not None:
     try:
         persons_df['updated_at'] = persons_df['updated_at'].apply(date_parser.parse)
-        persons_df['updated_at'] = pd.to_datetime(persons_df['updated_at'], utc=True)
+        persons_df['updated_at'] = pd.to_datetime(persons_df['updated_at'])
     except Exception as e:
         st.error(f"Error converting 'updated_at' to datetime: {e}")
         st.stop()
