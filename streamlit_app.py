@@ -5,6 +5,7 @@ import altair as alt
 import requests
 from io import StringIO
 from datetime import datetime, timedelta
+from dateutil import parser as date_parser
 
 st.set_page_config(page_title='KYC Lookup Tool', page_icon='🗝️')
 st.title('🗝️ KYC Lookup Tool')
@@ -187,7 +188,13 @@ contributors_path = "grants.contributors.csv"
 contributors_df = fetch_csv(owner, repo, contributors_path, access_token)
 persons_path = "legacy.persons.csv"
 persons_df = fetch_csv(owner, repo, persons_path, access_token)
-persons_df['updated_at'] = pd.to_datetime(persons_df['updated_at'], format="%Y-%m-%d %H:%M:%S", utc=True)
+if persons_df is not None:
+    try:
+        persons_df['updated_at'] = persons_df['updated_at'].apply(date_parser.parse)
+        persons_df['updated_at'] = pd.to_datetime(persons_df['updated_at'], utc=True)
+    except Exception as e:
+        st.error(f"Error converting 'updated_at' to datetime: {e}")
+        st.stop()
 
 if contributors_df is not None and persons_df is not None:
     persons_df['status'] = persons_df.sort_values('updated_at').groupby('email')['status'].transform('last')
