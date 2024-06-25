@@ -189,9 +189,6 @@ persons_df = fetch_csv(owner, repo, persons_path, access_token)
 
 if contributors_df is not None and persons_df is not None:
     persons_df['status'] = persons_df.sort_values('updated_at').groupby('email')['status'].transform('last')
-    inconsistent_entries = persons_df.groupby('email')['document_name'].nunique() > 1
-    inconsistent_emails = inconsistent_entries[inconsistent_entries].index
-    persons_df.loc[persons_df['email'].isin(inconsistent_emails), 'status'] = 'error'
     
     merged_df = contributors_df.merge(persons_df[['email', 'status']], on='email', how='left')
     
