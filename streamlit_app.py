@@ -44,7 +44,6 @@ def fetch_data(api_key, endpoint_url):
             params['page[after]'] = next_cursor
         else:
             break
-                break
 
     return data
 
