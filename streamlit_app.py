@@ -18,13 +18,13 @@ headers = {
     "Accept": "application/vnd.github.v3.raw"
 }
 
-rounds_list = df.round_id.unique()
-rounds_selection = st.multiselect('Select the Grant Round', rounds_list, ['rpgf2', 'rpgf3', 'season5-builders-19', 'season5-growth-19']) ##['Marketing', 'Token House - S4', 'Token House - S5', 'WLTA', 'RPGF3', 'RPGF2'])
 response = requests.get(url, headers=headers)
 
 if response.status_code == 200:
     csv_content = response.content.decode('utf-8')
     df = pd.read_csv(StringIO(csv_content))
+    rounds_list = df.round_id.unique()
+    rounds_selection = st.multiselect('Select the Grant Round', rounds_list, ['rpgf2', 'rpgf3', 'season5-builders-19', 'season5-growth-19']) ##['Marketing', 'Token House - S4', 'Token House - S5', 'WLTA', 'RPGF3', 'RPGF2'])
     st.write(df)
 else:
     st.error(f"Failed to fetch the file: {response.status_code}")
