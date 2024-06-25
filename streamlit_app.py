@@ -27,29 +27,30 @@ if response.status_code == 200:
 else:
     st.error(f"Failed to fetch the file: {response.status_code}")
 
+
 def fetch_data(api_key, endpoint_url):
     data = []
     headers = {"Authorization": f"Bearer {api_key}"}
-    params = {"page[limit]": 100}  # Initial parameters
+    params = {"page[size]": 100}
+    next_page_after = None
 
-    try:
-        while True:
-            response = requests.get(endpoint_url, headers=headers, params=params)
-            if response.status_code == 200:
-                response_data = response.json()
-                if 'data' in response_data:
-                    data.extend(response_data['data'])  # Append all data items to the list
+    while True:
+        if next_page_after:
+            params["page[after]"] = next_page_after
+        response = requests.get(endpoint_url, headers=headers, params=params)
+        if response.status_code == 200:
+            response_data = response.json()
+            if 'data' in response_data:
+                data.extend(response_data['data'])
                 if 'links' in response_data and 'next' in response_data['links']:
-                    next_page_url = response_data['links']['next']
-                    # Extract query parameters from next_page_url and update params
-                    params = {param.split('=')[0]: param.split('=')[1] for param in next_page_url.split('?')[1].split('&')}
+                    next_page_after = response_data['links']['next'].split('page[after]=')[-1]
                 else:
                     break
             else:
-                st.error(f"Error fetching data (Status Code: {response.status_code})")
                 break
-    except Exception as e:
-        st.error(f"Error fetching data: {e}")
+        else:
+            st.error(f"Error fetching data (Status Code: {response.status_code})")
+            break
 
     return data
 
