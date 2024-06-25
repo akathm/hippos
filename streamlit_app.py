@@ -35,23 +35,16 @@ def fetch_data(api_key, endpoint_url):
     next_page_after = None
 
     while True:
-        if next_page_after:
-            params["page[after]"] = next_page_after
-        response = requests.get(endpoint_url, headers=headers, params=params)
-        
-        if response.status_code == 200:
-            response_data = response.json()
-            if 'data' in response_data:
-                data.extend(response_data['data'])
-                if 'page' in response_data and 'after' in response_data['page']:
-                    next_page_after = response_data['page']['after']
-                else:
-                    break
-            else:
-                break
+        response = requests.get(base_url, headers=headers, params=params)
+        response_data = response.json()
+        results.extend(response_data.get('data', []))
+        next_link = response_data.get('links', {}).get('next')
+        if next_link:
+            next_cursor = next_link.split('page%5Bafter%5D=')[-1].split('&')[0]
+            params['page[after]'] = next_cursor
         else:
-            st.error(f"Error fetching data (Status Code: {response.status_code})")
             break
+                break
 
     return data
 
