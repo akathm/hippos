@@ -193,7 +193,7 @@ if contributors_df is not None and persons_df is not None:
     merged_df = contributors_df.merge(persons_df[['email', 'status']], on='email', how='left')
     merged_df['status'].fillna('not started', inplace=True)
     merged_df = merged_df[~(merged_df['email'].isnull() & merged_df['contributor_id'].isnull())]
-    merged_df.drop_duplicates(subset=['email', 'round_id', 'op_amount'], inplace=True)
+    merged_df.drop_duplicates(subset=['email', 'round_id', 'op_amt'], inplace=True)
     
     projects_list = ['Ambassadors', 'NumbaNERDs', 'SupportNERDs', 'Translators', 'Badgeholders']
     projects_selection = st.multiselect('Select the Contributor Path', projects_list + ['Other'])
