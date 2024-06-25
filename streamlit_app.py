@@ -18,6 +18,8 @@ headers = {
     "Accept": "application/vnd.github.v3.raw"
 }
 
+rounds_list = df.round_id.unique()
+rounds_selection = st.multiselect('Select the Grant Round', rounds_list, ['rpgf2', 'rpgf3', 'season5-builders-19', 'season5-growth-19']) ##['Marketing', 'Token House - S4', 'Token House - S5', 'WLTA', 'RPGF3', 'RPGF2'])
 response = requests.get(url, headers=headers)
 
 if response.status_code == 200:
@@ -26,6 +28,7 @@ if response.status_code == 200:
     st.write(df)
 else:
     st.error(f"Failed to fetch the file: {response.status_code}")
+
 
 @st.cache_data(ttl=600)
 def fetch_data(api_key, base_url):
@@ -96,7 +99,7 @@ def process_cases(results):
     return pd.DataFrame.from_dict(records.values())
 
 def main():
-    st.title('KYC Individuals Table')
+    st.title('KYC Database')
     api_key = st.secrets["persona"]["api_key"]
 
     if 'inquiries_data' not in st.session_state:
