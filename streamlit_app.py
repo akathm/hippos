@@ -189,15 +189,17 @@ persons_df = fetch_csv(owner, repo, persons_path, access_token)
 
 if contributors_df is not None and persons_df is not None:
     persons_df['status'] = persons_df.sort_values('updated_at').groupby('email')['status'].transform('last')
-  
+    current_date = datetime.now()
+    one_year_ago = current_date - timedelta(days=365)
+    persons_df.loc[(persons_df['status'] == 'cleared') & (persons_df['updated_at'] < one_year_ago), 'status'] = 'expired'
+
     merged_df = contributors_df.merge(persons_df[['email', 'status']], on='email', how='left')
     merged_df['status'].fillna('not started', inplace=True)
     merged_df = merged_df[~(merged_df['email'].isnull() & merged_df['contributor_id'].isnull())]
     merged_df.drop_duplicates(subset=['email', 'round_id', 'op_amt'], inplace=True)
 
     projects_list = ['Ambassadors', 'NumbaNERDs', 'SupportNERDs', 'Translators', 'Badgeholders']
-    projects_selection = st.multiselect('Select the Contributor Path', projects_list + ['Other'], ['Ambassadors', 'NumbaNERDs', 'SupportNERDs', 'Translators', 'Badgeholders', 'Other'])
-##    projects_selection = st.multiselect('Select the Contributor Path', projects_list + ['Other'])    
+    projects_selection = st.multiselect('Select the Contributor Path', projects_list + ['Other'], ['Ambassadors', 'NumbaNERDs', 'SupportNERDs', 'Translators', 'Badgeholders', 'Other']) 
   
     if 'Other' in projects_selection:
         filtered_df = merged_df[~merged_df['project_name'].isin(projects_list)]
