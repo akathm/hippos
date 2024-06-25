@@ -8,14 +8,15 @@ from io import StringIO
 st.set_page_config(page_title='KYC Lookup Tool', page_icon='🗝️')
 st.title('🗝️ KYC Lookup Tool')
 
-##PERSONA-------------------------------------------------------------------
-
 st.subheader ('Project Status')
-with st.expander('About the KYC Lookup results'):
+with st.expander('About the Results'):
   st.markdown('**Every project must complete KYC (or KYB for businesses) in order to receive tokens.**')
   st.info('This tool can be used to lookup project status for a specific grant round or workflow. If you do not see the expected grants round here, or you see other unexpected results, please reach out to the Grant Program Manager to correct this issue.')
   st.markdown('**What if the team is not clear yet?**')
   st.warning('If you see a project is in *\"pending\"* status, this means that we are waiting on action from that team. Please direct them to check their emails: one or more responsible parties have been emailed with a link to complete further steps in the KYC process.')
+
+
+## PERSONA-------------------------------------------------------------------
 
 @st.cache_data(ttl=600)
 def fetch_data(api_key, base_url):
@@ -131,7 +132,12 @@ def main():
             else:
                 st.write("No results found.")
 
-## REPORT LOOKUP
+
+if __name__ == '__main__':
+    main()
+
+
+## REPORT LOOKUP-----------------------------------------------------
 
 st.subheader('Active Grants Rounds')
 
@@ -179,6 +185,3 @@ if response.status_code == 200:
 else:
     st.error(f"Failed to fetch the file: {response.status_code}")
 
-
-if __name__ == '__main__':
-    main()
