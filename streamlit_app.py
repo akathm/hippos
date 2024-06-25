@@ -198,9 +198,11 @@ if persons_df is not None and 'updated_at' in persons_df.columns:
 
 if contributors_df is not None and persons_df is not None:
     persons_df['status'] = persons_df.sort_values('updated_at').groupby('email')['status'].transform('last')
-    current_date_utc = datetime.utcnow().replace(tzinfo=timezone.utc)
-    one_year_ago = current_date - timedelta(days=365)
-    persons_df.loc[(persons_df['status'] == 'cleared') & (persons_df['updated_at'] < one_year_ago), 'status'] = 'expired'
+    
+    current_date_utc = datetime.utcnow().replace(tzinfo=timezone.utc)  # Define current_date_utc
+    
+    one_year_ago_utc = current_date_utc - timedelta(days=365)
+    persons_df.loc[(persons_df['status'] == 'cleared') & (persons_df['updated_at'] < one_year_ago_utc), 'status'] = 'expired'
 
     merged_df = contributors_df.merge(persons_df[['email', 'status']], on='email', how='left')
     merged_df['status'].fillna('not started', inplace=True)
