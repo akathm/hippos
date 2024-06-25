@@ -112,7 +112,7 @@ def main():
         st.dataframe(merged_df)
         
         st.sidebar.header("Lookup Tool")
-        search_input = st.sidebar.text_input("Enter name, L2 address, or email to search")
+        search_input = st.sidebar.text_input("Enter the L2 address, email, or full legal name to search")
 
         if st.sidebar.button("Search") and search_input:
             results = merged_df[merged_df.apply(lambda row: any(search_input.lower() in str(row[col]).lower() for col in ['name', 'l2_address', 'email_address']), axis=1)]
