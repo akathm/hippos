@@ -34,16 +34,17 @@ def fetch_data(api_key, endpoint_url):
     params = {"page[size]": 100}
     next_page_after = None
 
-    while True:
+while True:
         if next_page_after:
             params["page[after]"] = next_page_after
         response = requests.get(endpoint_url, headers=headers, params=params)
+        
         if response.status_code == 200:
             response_data = response.json()
             if 'data' in response_data:
                 data.extend(response_data['data'])
-                if 'links' in response_data and 'next' in response_data['links']:
-                    next_page_after = response_data['links']['next'].split('page[after]=')[-1]
+                if 'page' in response_data and 'after' in response_data['page']:
+                    next_page_after = response_data['page']['after']
                 else:
                     break
             else:
