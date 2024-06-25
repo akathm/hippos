@@ -15,7 +15,7 @@ with st.expander('About the KYC Lookup results'):
   st.markdown('**Every project must complete KYC (or KYB for businesses) in order to receive tokens.**')
   st.info('This tool can be used to lookup project status for a specific grant round or workflow. If you do not see the expected grants round here, or you see other unexpected results, please reach out to the Grant Program Manager to correct this issue.')
   st.markdown('**What if the team is not clear yet?**')
-  st.warning('If you see a project is in *\"pending\"* status, this means that we are waiting on action from that team. Please direct them to check their email. 1 or more of the responsible parties have been emailed with a link to complete further steps for clearance. If a project status is *\"not started\"* then please direct the team to go to kyc.optimism.io/form to begin the process.  We may have an incorrect email on file if this is the case: please confirm your contact and get in touch with compliance@optimism.io if you see an email error issue.')
+  st.warning('If you see a project is in *\"pending\"* status, this means that we are waiting on action from that team. Please direct them to check their emails, since one or more responsible parties have been emailed with a link to complete further steps for clearance and have not yet responded to us by taking action. If a project status is *\"not started\"*, please direct the team to go to kyc.optimism.io/form to begin the KYC process.  If you notice that we have an incorrect email on file, or the grantee is continuously missing our emails, please confirm your contact and get in touch with compliance@optimism.io to help with any email error issues.')
 
 @st.cache_data(ttl=600)
 def fetch_data(api_key, base_url):
