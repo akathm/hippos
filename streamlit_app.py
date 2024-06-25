@@ -49,7 +49,7 @@ def fetch_data(api_key, base_url):
 
 def process_inquiries(results):
     records = {}
-    for item in data:
+    for item in results:
         inquiry_id = item['id']
         attributes = item.get('attributes', {})
         name_first = attributes.get('name-first', '') or ''
@@ -75,7 +75,7 @@ def process_inquiries(results):
 
 def process_cases(results):
     records = {}
-    for item in data:
+    for item in results:
         case_id = item['id']
         attributes = item.get('attributes', {})
         status = attributes.get('status')
