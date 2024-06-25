@@ -111,7 +111,7 @@ def main():
         inquiries_df = process_inquiries(inquiries_data)
         cases_df = process_cases(cases_data)
         
-       merged_df = pd.concat([inquiries_df, cases_df], ignore_index=True)
+        merged_df = pd.concat([inquiries_df, cases_df], ignore_index=True)
         st.dataframe(merged_df)
         
         st.sidebar.header("Lookup Tool")
