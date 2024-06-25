@@ -34,7 +34,7 @@ def fetch_data(api_key, endpoint_url):
     params = {"page[size]": 100}
     next_page_after = None
 
-while True:
+    while True:
         if next_page_after:
             params["page[after]"] = next_page_after
         response = requests.get(endpoint_url, headers=headers, params=params)
