@@ -29,7 +29,7 @@ else:
 
 
 def fetch_data(api_key, base_url):
-    data = []
+    results = []
     headers = {"Authorization": f"Bearer {api_key}"}
     params = {"page[size]": 100}
     next_page_after = None
@@ -45,9 +45,9 @@ def fetch_data(api_key, base_url):
         else:
             break
 
-    return data
+    return results
 
-def process_inquiries(data):
+def process_inquiries(results):
     records = {}
     for item in data:
         inquiry_id = item['id']
@@ -73,7 +73,7 @@ def process_inquiries(data):
 
     return pd.DataFrame.from_dict(records.values())
 
-def process_cases(data):
+def process_cases(results):
     records = {}
     for item in data:
         case_id = item['id']
