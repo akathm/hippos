@@ -98,8 +98,14 @@ def process_cases(results):
 def main():
     st.title('KYC Individuals Table')
     api_key = st.secrets["persona"]["api_key"]
+
+    if 'inquiries_data' not in st.session_state:
+        st.session_state.inquiries_data = None
+    if 'cases_data' not in st.session_state:
+        st.session_state.cases_data = None
+
     refresh_button = st.button("Refresh")
-    
+
     if refresh_button:
         inquiries_data = fetch_data(api_key, "https://app.withpersona.com/api/v1/inquiries?refresh=true")
         cases_data = fetch_data(api_key, "https://app.withpersona.com/api/v1/cases?refresh=true")
