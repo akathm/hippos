@@ -8,53 +8,6 @@ from io import StringIO
 st.set_page_config(page_title='KYC Lookup Tool', page_icon='🗝️')
 st.title('🗝️ KYC Lookup Tool')
 
-st.subheader('Active Grants Rounds')
-
-access_token = st.secrets["github"]["access_token"]
-owner = "akathm"
-repo = "the-trojans"
-path = "grants.projects.csv"
-url = f"https://api.github.com/repos/{owner}/{repo}/contents/{path}"
-headers = {
-    "Authorization": f"token {access_token}",
-    "Accept": "application/vnd.github.v3.raw"
-}
-
-response = requests.get(url, headers=headers)
-
-if response.status_code == 200:
-    csv_content = response.content.decode('utf-8')
-    df = pd.read_csv(StringIO(csv_content))
-    rounds_list = df.round_id.unique()
-    rounds_selection = st.multiselect('Select the Grant Round', rounds_list, ['rpgf2', 'rpgf3', 'season5-builders-19', 'season5-growth-19']) ##['Marketing', 'Token House - S4', 'Token House - S5', 'WLTA', 'RPGF3', 'RPGF2'])
-    st.write(df)
-else:
-    st.error(f"Failed to fetch the file: {response.status_code}")
-
-st.subheader ('Individual Contributors')
-
-access_token = st.secrets["github"]["access_token"]
-owner = "akathm"
-repo = "the-trojans"
-path = "grants.contributors.csv"
-url = f"https://api.github.com/repos/{owner}/{repo}/contents/{path}"
-headers = {
-    "Authorization": f"token {access_token}",
-    "Accept": "application/vnd.github.v3.raw"
-}
-
-response = requests.get(url, headers=headers)
-
-if response.status_code == 200:
-    csv_content = response.content.decode('utf-8')
-    df = pd.read_csv(StringIO(csv_content))
-    projects_list = df.project_name.unique()
-    projects_selection = st.multiselect('Select the Contributor Path', projects_list, ['Ambassadors', 'NumbaNERDs', 'SupportNERDs', 'Translators', 'Badgeholders'])
-    st.write(df)
-else:
-    st.error(f"Failed to fetch the file: {response.status_code}")
-
-
 ##PERSONA-------------------------------------------------------------------
 
 @st.cache_data(ttl=600)
@@ -170,6 +123,55 @@ def main():
                             st.write(f"Message: KYB Status is Pending")
             else:
                 st.write("No results found.")
+
+## REPORT LOOKUP
+
+st.subheader('Active Grants Rounds')
+
+access_token = st.secrets["github"]["access_token"]
+owner = "akathm"
+repo = "the-trojans"
+path = "grants.projects.csv"
+url = f"https://api.github.com/repos/{owner}/{repo}/contents/{path}"
+headers = {
+    "Authorization": f"token {access_token}",
+    "Accept": "application/vnd.github.v3.raw"
+}
+
+response = requests.get(url, headers=headers)
+
+if response.status_code == 200:
+    csv_content = response.content.decode('utf-8')
+    df = pd.read_csv(StringIO(csv_content))
+    rounds_list = df.round_id.unique()
+    rounds_selection = st.multiselect('Select the Grant Round', rounds_list, ['rpgf2', 'rpgf3', 'season5-builders-19', 'season5-growth-19']) ##['Marketing', 'Token House - S4', 'Token House - S5', 'WLTA', 'RPGF3', 'RPGF2'])
+    st.write(df)
+else:
+    st.error(f"Failed to fetch the file: {response.status_code}")
+
+st.subheader ('Individual Contributors')
+
+access_token = st.secrets["github"]["access_token"]
+owner = "akathm"
+repo = "the-trojans"
+path = "grants.contributors.csv"
+url = f"https://api.github.com/repos/{owner}/{repo}/contents/{path}"
+headers = {
+    "Authorization": f"token {access_token}",
+    "Accept": "application/vnd.github.v3.raw"
+}
+
+response = requests.get(url, headers=headers)
+
+if response.status_code == 200:
+    csv_content = response.content.decode('utf-8')
+    df = pd.read_csv(StringIO(csv_content))
+    projects_list = df.project_name.unique()
+    projects_selection = st.multiselect('Select the Contributor Path', projects_list, ['Ambassadors', 'NumbaNERDs', 'SupportNERDs', 'Translators', 'Badgeholders'])
+    st.write(df)
+else:
+    st.error(f"Failed to fetch the file: {response.status_code}")
+
 
 if __name__ == '__main__':
     main()
