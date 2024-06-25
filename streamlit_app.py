@@ -27,7 +27,7 @@ if response.status_code == 200:
 else:
     st.error(f"Failed to fetch the file: {response.status_code}")
 
-
+@st.cache_data(ttl=600)
 def fetch_data(api_key, base_url):
     results = []
     headers = {"Authorization": f"Bearer {api_key}"}
