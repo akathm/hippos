@@ -191,7 +191,6 @@ persons_df = fetch_csv(owner, repo, persons_path, access_token)
 
 if persons_df is not None and 'updated_at' in persons_df.columns:
     try:
-        persons_df['updated_at'] = persons_df['updated_at'].apply(lambda x: x.strip() if x.endswith('+00:00') else x + '+00:00')
         persons_df['updated_at'] = pd.to_datetime(persons_df['updated_at'], format='%Y-%m-%d %H:%M:%S%z')
     except Exception as e:
         st.error(f"Error converting 'updated_at' to datetime: {e}")
@@ -199,7 +198,7 @@ if persons_df is not None and 'updated_at' in persons_df.columns:
 
 if contributors_df is not None and persons_df is not None:
     persons_df['status'] = persons_df.sort_values('updated_at').groupby('email')['status'].transform('last')
-    current_date = datetime.now()
+    current_date_utc = datetime.utcnow().replace(tzinfo=timezone.utc)
     one_year_ago = current_date - timedelta(days=365)
     persons_df.loc[(persons_df['status'] == 'cleared') & (persons_df['updated_at'] < one_year_ago), 'status'] = 'expired'
 
