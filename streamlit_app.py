@@ -105,6 +105,7 @@ def fetch_csv(owner, repo, path, access_token):
 
 def main():
     st.title('KYC Database')
+    st.subheader('Individual Contributors')
     api_key = st.secrets["persona"]["api_key"]
     access_token = st.secrets["github"]["access_token"]
     owner = "akathm"
@@ -185,4 +186,3 @@ if response.status_code == 200:
 else:
     st.error(f"Failed to fetch the file: {response.status_code}")
 
-st.subheader('Individual Contributors')
