@@ -190,7 +190,7 @@ def main():
         
 ## Grants Rounds--------------------------------------------
         
-        st.subheader('Active Grants Rounds')
+    st.subheader('Active Grants Rounds')
 
         response = requests.get(url, headers=headers)
 
