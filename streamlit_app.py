@@ -191,7 +191,7 @@ persons_df = fetch_csv(owner, repo, persons_path, access_token)
 
 ##-----------
 
-persona_df = process_inquiries(results)
+persona_df = inquiries_df.copy()
 
 if contributors_df is not None and persons_df is not None and persona_df is not None:
     try:
