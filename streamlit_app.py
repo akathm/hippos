@@ -87,7 +87,6 @@ def process_cases(results):
             
     return pd.DataFrame.from_dict(records.values())
 
-
 def main():
     st.title('KYC Database')
     api_key = st.secrets["persona"]["api_key"]
@@ -134,113 +133,11 @@ def main():
             else:
                 st.write("No results found.")
 
-  ## LEGACY DATA-------------------------------------------------------------------
-
-    if inquiries_data and cases_data:
-        inquiries_df = process_inquiries(inquiries_data)
-        cases_df = process_cases(cases_data)
-
-        merged_df = pd.concat([inquiries_df, cases_df], ignore_index=True)
-        st.dataframe(merged_df)
-
-        persona_df = inquiries_df.copy()
-
-        st.subheader('Active Grants Rounds')
-
-        access_token = st.secrets["github"]["access_token"]
-        owner = "akathm"
-        repo = "the-trojans"
-        path = "grants.projects.csv"
-        url = f"https://api.github.com/repos/{owner}/{repo}/contents/{path}"
-        headers = {
-            "Authorization": f"token {access_token}",
-            "Accept": "application/vnd.github.v3.raw"
-        }
-
-        response = requests.get(url, headers=headers)
-
-        if response.status_code == 200:
-            csv_content = response.content.decode('utf-8')
-            df = pd.read_csv(StringIO(csv_content))
-            rounds_list = df.round_id.unique()
-            rounds_selection = st.multiselect('Select the Grant Round',
-                                               rounds_list,
-                                               ['rpgf2', 'rpgf3', 'season5-builders-19', 'season5-growth-19'])  ##['Marketing', 'Token House - S4', 'Token House - S5', 'WLTA', 'RPGF3', 'RPGF2'])
-            st.write(df)
-        else:
-            st.error(f"Failed to fetch the file: {response.status_code}")
-
-        st.subheader('Individual Contributors')
-
-        def fetch_csv(owner, repo, path, access_token):
-            url = f"https://api.github.com/repos/{owner}/{repo}/contents/{path}"
-            headers = {
-                "Authorization": f"token {access_token}",
-                "Accept": "application/vnd.github.v3.raw"
-            }
-            response = requests.get(url, headers=headers)
-            if response.status_code == 200:
-                csv_content = response.content.decode('utf-8')
-                df = pd.read_csv(StringIO(csv_content))
-                return df
-            else:
-                st.error(f"Failed to fetch the file from {path}: {response.status_code}")
-                return None
-
-        access_token = st.secrets["github"]["access_token"]
-        owner = "akathm"
-        repo = "the-trojans"
-        contributors_path = "grants.contributors.csv"
-        contributors_df = fetch_csv(owner, repo, contributors_path, access_token)
-        persons_path = "legacy.persons.csv"
-        persons_df = fetch_csv(owner, repo, persons_path, access_token)
-
-        if contributors_df is not None and persons_df is not None and persona_df is not None:
-            try:
-                persons_df['updated_at'] = pd.to_datetime(persons_df['updated_at'], format='%Y-%m-%d %H:%M:%S%z')
-
-                valid_persona_df = persona_df.dropna(subset=['inquiry_id'])
-                valid_persona_df['updated_at'] = pd.to_datetime(valid_persona_df['updated_at'],
-                                                                format='%Y-%m-%d %H:%M:%S%z')
-                current_date = datetime.now()
-                one_year_ago = current_date - timedelta(days=365)
-                valid_persona_df = valid_persona_df[valid_persona_df['updated_at'] >= one_year_ago]
-
-                merged_df = pd.merge(contributors_df, persons_df, how='left', on=['email', 'full_name'])
-                merged_df = pd.merge(merged_df,
-                                     valid_persona_df[['email', 'status']],
-                                     how='left',
-                                     on='email',
-                                     suffixes=('', '_persona'))
-
-                merged_df['status'] = merged_df.apply(
-                    lambda row: row['status_persona'] if pd.notna(row['inquiry_id']) else row['status'],
-                    axis=1)
-                merged_df['status'].fillna('not started', inplace=True)
-
-                projects_list = ['Ambassadors', 'NumbaNERDs', 'SupportNERDs', 'Translators', 'Badgeholders']
-                projects_selection = st.multiselect('Select the Contributor Path',
-                                                    projects_list + ['Other'],
-                                                    projects_list)
-
-                if 'Other' in projects_selection:
-                    filtered_df = merged_df[~merged_df['project_name'].isin(projects_list)]
-                    if set(projects_selection) - {'Other'}:
-                        filtered_df = pd.concat([filtered_df,
-                                                 merged_df[merged_df['project_name'].isin(set(projects_selection) - {'Other'})]])
-                else:
-                    filtered_df = merged_df[merged_df['project_name'].isin(projects_selection)] if projects_selection else merged_df
-                
-                st.subheader('Individual Contributors')
-                st.write(filtered_df)
-
-            except Exception as e:
-                st.error(f"Error processing data: {e}")
 
 if __name__ == '__main__':
     main()
 
-_="""
+
 ## REPORT LOOKUP-----------------------------------------------------
 
 st.subheader('Active Grants Rounds')
@@ -335,7 +232,7 @@ if contributors_df is not None and persons_df is not None and persona_df is not 
         st.error(f"Error processing data: {e}")
 
 ##-----------
-
+_ = """
 if persons_df is not None and 'updated_at' in persons_df.columns:
     try:
         persons_df['updated_at'] = pd.to_datetime(persons_df['updated_at'], format='%Y-%m-%d %H:%M:%S%z')
