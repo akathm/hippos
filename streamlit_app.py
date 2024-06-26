@@ -9,15 +9,12 @@ from datetime import datetime, timedelta, timezone
 st.set_page_config(page_title='KYC Lookup Tool', page_icon='🗝️')
 st.title('🗝️ KYC Lookup Tool')
 
-st.subheader ('Project Status')
+st.subheader('Project Status')
 with st.expander('About the Results'):
-  st.markdown('**Every project must complete KYC (or KYB for businesses) in order to receive tokens.**')
-  st.info('This tool can be used to lookup project status for a specific grant round or workflow. If you do not see the expected grants round here, or you see other unexpected results, please reach out to the Grant Program Manager to correct this issue.')
-  st.markdown('**What should I do if a project I\'m talking to is not in *\"cleared\"* status?**')
-  st.warning('If you see a project is in *\"pending\"* status, this means that we are waiting on action from that team. Please direct them to check their emails: one or more responsible parties have been emailed with a link to complete further steps in the KYC process.')
-
-
-## PERSONA-------------------------------------------------------------------
+    st.markdown('**Every project must complete KYC (or KYB for businesses) in order to receive tokens.**')
+    st.info('This tool can be used to lookup project status for a specific grant round or workflow. If you do not see the expected grants round here, or you see other unexpected results, please reach out to the Grant Program Manager to correct this issue.')
+    st.markdown('**What should I do if a project I\'m talking to is not in *\"cleared\"* status?**')
+    st.warning('If you see a project is in *\"pending\"* status, this means that we are waiting on action from that team. Please direct them to check their emails: one or more responsible parties have been emailed with a link to complete further steps in the KYC process.')
 
 @st.cache_data(ttl=600)
 def fetch_data(api_key, base_url):
@@ -74,7 +71,7 @@ def process_cases(results):
         fields = attributes.get('fields', {})
         business_name = fields.get('business-name', {}).get('value', '')
         updated_at = attributes.get('updated-at')
-        
+
         if case_id not in records:
             records[case_id] = {
                 'case_id': case_id,
@@ -84,8 +81,23 @@ def process_cases(results):
                 'updated_at': updated_at,
                 'status': status
             }
-            
+
     return pd.DataFrame.from_dict(records.values())
+
+def fetch_csv(owner, repo, path, access_token):
+    url = f"https://api.github.com/repos/{owner}/{repo}/contents/{path}"
+    headers = {
+        "Authorization": f"token {access_token}",
+        "Accept": "application/vnd.github.v3.raw"
+    }
+    response = requests.get(url, headers=headers)
+    if response.status_code == 200:
+        csv_content = response.content.decode('utf-8')
+        df = pd.read_csv(StringIO(csv_content))
+        return df
+    else:
+        st.error(f"Failed to fetch the file from {path}: {response.status_code}")
+        return None
 
 def main():
     st.title('KYC Database')
@@ -104,13 +116,61 @@ def main():
     else:
         inquiries_data = fetch_data(api_key, "https://app.withpersona.com/api/v1/inquiries")
         cases_data = fetch_data(api_key, "https://app.withpersona.com/api/v1/cases")
-    
+
     if inquiries_data and cases_data:
         inquiries_df = process_inquiries(inquiries_data)
         cases_df = process_cases(cases_data)
-        
-        merged_df = pd.concat([inquiries_df, cases_df], ignore_index=True)
-        st.dataframe(merged_df)
+
+        access_token = st.secrets["github"]["access_token"]
+        owner = "akathm"
+        repo = "the-trojans"
+        contributors_path = "grants.contributors.csv"
+        contributors_df = fetch_csv(owner, repo, contributors_path, access_token)
+        persons_path = "legacy.persons.csv"
+        persons_df = fetch_csv(owner, repo, persons_path, access_token)
+
+        if persons_df is not None and 'updated_at' in persons_df.columns:
+            try:
+                persons_df['updated_at'] = pd.to_datetime(persons_df['updated_at'], format='%Y-%m-%d %H:%M:%S%z')
+            except Exception as e:
+                st.error(f"Error converting 'updated_at' to datetime: {e}")
+                st.stop()
+
+        if contributors_df is not None and persons_df is not None:
+            current_date_utc = datetime.utcnow().replace(tzinfo=timezone.utc)
+            one_year_ago_utc = current_date_utc - timedelta(days=365)
+
+            # Process GitHub persons data
+            persons_df['status'] = persons_df.sort_values('updated_at').groupby('email')['status'].transform('last')
+            persons_df.loc[(persons_df['status'] == 'cleared') & (persons_df['updated_at'] < one_year_ago_utc), 'status'] = 'expired'
+
+            # Process Persona inquiries data
+            inquiries_df['updated_at'] = pd.to_datetime(inquiries_df['updated_at'], format='%Y-%m-%dT%H:%M:%S.%fZ')
+            inquiries_df['status'] = inquiries_df.sort_values('updated_at').groupby('email_address')['status'].transform('last')
+            inquiries_df['status'] = inquiries_df['status'].replace('approved', 'cleared')
+            inquiries_df.loc[inquiries_df['updated_at'] < one_year_ago_utc, 'status'] = 'expired'
+
+            # Merge GitHub and Persona data
+            combined_df = pd.concat([persons_df, inquiries_df], ignore_index=True)
+            combined_df['status'] = combined_df.sort_values('updated_at').groupby('email_address')['status'].transform('last')
+
+            # Merge with contributors data
+            merged_df = contributors_df.merge(combined_df[['email_address', 'status']], left_on='email', right_on='email_address', how='left')
+            merged_df['status'].fillna('not started', inplace=True)
+            merged_df = merged_df[~(merged_df['email'].isnull() & merged_df['contributor_id'].isnull())]
+            merged_df.drop_duplicates(subset=['email', 'round_id', 'op_amt'], inplace=True)
+
+            projects_list = ['Ambassadors', 'NumbaNERDs', 'SupportNERDs', 'Translators', 'Badgeholders']
+            projects_selection = st.multiselect('Select the Contributor Path', projects_list + ['Other'], ['Ambassadors', 'NumbaNERDs', 'SupportNERDs', 'Translators', 'Badgeholders', 'Other'])
+
+            if 'Other' in projects_selection:
+                filtered_df = merged_df[~merged_df['project_name'].isin(projects_list)]
+                if set(projects_selection) - {'Other'}:
+                    filtered_df = pd.concat([filtered_df, merged_df[merged_df['project_name'].isin(set(projects_selection) - {'Other'})]])
+            else:
+                filtered_df = merged_df[merged_df['project_name'].isin(projects_selection)] if projects_selection else merged_df
+
+            st.write(filtered_df)
         
         st.sidebar.header("Lookup Tool")
         search_input = st.sidebar.text_input("Enter the L2 address, email, or full legal name")
