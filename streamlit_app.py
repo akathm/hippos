@@ -118,8 +118,30 @@ def main():
     owner = "akathm"
     repo = "the-trojans"
 
-    inquiries_data = fetch_data(api_key, "https://app.withpersona.com/api/v1/inquiries")
-    cases_data = fetch_data(api_key, "https://app.withpersona.com/api/v1/cases")
+    if 'inquiries_data' not in st.session_state:
+        st.session_state.inquiries_data = None
+    if 'cases_data' not in st.session_state:
+        st.session_state.cases_data = None
+
+    refresh_button = st.button("Refresh")
+
+    if refresh_button:
+        inquiries_data = fetch_data(api_key, "https://app.withpersona.com/api/v1/inquiries?refresh=true")
+        cases_data = fetch_data(api_key, "https://app.withpersona.com/api/v1/cases?refresh=true")
+        st.session_state.inquiries_data = inquiries_data
+        st.session_state.cases_data = cases_data
+    else:
+        if st.session_state.inquiries_data is None:
+            inquiries_data = fetch_data(api_key, "https://app.withpersona.com/api/v1/inquiries")
+            st.session_state.inquiries_data = inquiries_data
+        else:
+            inquiries_data = st.session_state.inquiries_data
+        
+        if st.session_state.cases_data is None:
+            cases_data = fetch_data(api_key, "https://app.withpersona.com/api/v1/cases")
+            st.session_state.cases_data = cases_data
+        else:
+            cases_data = st.session_state.cases_data
     
     inquiries_df = process_inquiries(inquiries_data)
     cases_df = process_cases(cases_data)
@@ -205,7 +227,7 @@ def main():
         csv_content = response.content.decode('utf-8')
         df = pd.read_csv(StringIO(csv_content))
         rounds_list = df.round_id.unique()
-        rounds_selection = st.multiselect('Select the Grant Round', list(rounds_list) + ['Other'], ['rpgf2', 'rpgf3', 'season5-builders-19', 'season5-growth-19'])
+        rounds_selection = st.multiselect('Select the Grant Round', list(rounds_list), ['rpgf2', 'rpgf3', 'season5-builders-19', 'season5-growth-19'])
         
         if 'Other' in rounds_selection:
             filtered_df = df[~df['round_id'].isin(['rpgf2', 'rpgf3', 'season5-builders-19', 'season5-growth-19'])]
