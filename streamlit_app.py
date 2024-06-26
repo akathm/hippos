@@ -112,7 +112,7 @@ def fetch_csv(owner, repo, path, access_token):
 
 def main():
     st.title('KYC Database')
-    st.subheader('Individual Contributors')
+    
     api_key = st.secrets["persona"]["api_key"]
     access_token = st.secrets["github"]["access_token"]
     owner = "akathm"
@@ -125,10 +125,14 @@ def main():
     cases_df = process_cases(cases_data)
     
     contributors_path = "grants.contributors.csv"
+    projects_path = "grants.projects.csv"
     persons_path = "legacy.persons.csv"
+    businesses_path = "legacy.businesses.csv"
 
     contributors_df = fetch_csv(owner, repo, contributors_path, access_token)
+    projects_df = fetch_csv(owner, repo, contributors_path, access_token)
     persons_df = fetch_csv(owner, repo, persons_path, access_token)
+    businesses_df = fetch_csv(owner, repo, contributors_path, access_token)
 
     if persons_df is not None and 'updated_at' in persons_df.columns:
         try:
@@ -137,14 +141,31 @@ def main():
             st.error(f"Error converting 'updated_at' to datetime: {e}")
             st.stop()
 
+    if businesses_df is not None and 'updated_at' in businesses_df.columns:
+        try:
+            businesses_df['updated_at'] = pd.to_datetime(businesses_df['updated_at'], utc=True)
+        except Exception as e:
+            st.error(f"Error converting 'updated_at' to datetime: {e}")
+            st.stop()
+
     if inquiries_df is not None and 'updated_at' in inquiries_df.columns:
         inquiries_df['updated_at'] = pd.to_datetime(inquiries_df['updated_at'], utc=True)
 
+    if cases_df is not None and 'updated_at' in cases_df.columns:
+        cases_df['updated_at'] = pd.to_datetime(cases_df['updated_at'], utc=True)
+    
     if persons_df is not None and inquiries_df is not None:
         current_date_utc = datetime.utcnow().replace(tzinfo=timezone.utc)
         one_year_ago_utc = current_date_utc - timedelta(days=365)
 
-        # Combine GitHub and Persona data
+    if businesses_df is not None and businesses_df is not None:
+        current_date_utc = datetime.utcnow().replace(tzinfo=timezone.utc)
+        one_year_ago_utc = current_date_utc - timedelta(days=365)
+
+## Contributors-------------------------------------------------------
+    
+    st.subheader('Individual Contributors')
+        
         all_persons_df = pd.concat([persons_df, inquiries_df], ignore_index=True)
         all_persons_df['status'] = all_persons_df.sort_values('updated_at').groupby('email')['status'].transform('last')
 
@@ -164,14 +185,30 @@ def main():
                 filtered_df = pd.concat([filtered_df, merged_df[merged_df['project_name'].isin(set(projects_selection) - {'Other'})]])
         else:
             filtered_df = merged_df[merged_df['project_name'].isin(projects_selection)] if projects_selection else merged_df
-
+            
         st.write(filtered_df)
+        
+## Grants Rounds--------------------------------------------
+        
+        st.subheader('Active Grants Rounds')
+
+        response = requests.get(url, headers=headers)
+
+        if response.status_code == 200:
+            csv_content = response.content.decode('utf-8')
+            df = pd.read_csv(StringIO(csv_content))
+            rounds_list = df.round_id.unique()
+            rounds_selection = st.multiselect('Select the Grant Round', rounds_list, ['rpgf2', 'rpgf3', 'season5-builders-19', 'season5-growth-19']) ##['Marketing', 'Token House - S4', 'Token House - S5', 'WLTA', 'RPGF3', 'RPGF2'])
+            st.write(df)
+        else:
+            st.error(f"Failed to fetch the file: {response.status_code}")
+        
 
 if __name__ == '__main__':
     main()
 
 _="""
-st.subheader('Active Grants Rounds')
+
 
 access_token = st.secrets["github"]["access_token"]
 owner = "akathm"
