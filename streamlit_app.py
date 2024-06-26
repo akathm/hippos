@@ -227,11 +227,22 @@ def main():
                     filtered_df = merged_df[~merged_df['project_name'].isin(projects_list)]
                     if set(projects_selection) - {'Other'}:
                         filtered_df = pd.concat(
-                            [filtered_df, merged_df[merged_df['project_name'].isin
+                            [filtered_df, merged_df[merged_df['project_name'].isin(projects_list)]
+                    if set(projects_selection) - {'Other'}:
+                        filtered_df = pd.concat([filtered_df, merged_df[merged_df['project_name'].isin(set(projects_selection) - {'Other'})]])
+                else:
+                    filtered_df = merged_df[merged_df['project_name'].isin(projects_selection)] if projects_selection else merged_df
+                
+                # Display the filtered dataframe
+                st.subheader('Individual Contributors')
+                st.write(filtered_df)
 
+            except Exception as e:
+                st.error(f"Error processing data: {e}")
 
 if __name__ == '__main__':
     main()
+
 
 _="""
 ## REPORT LOOKUP-----------------------------------------------------
