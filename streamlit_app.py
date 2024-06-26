@@ -37,7 +37,7 @@ def fetch_data(api_key, base_url):
     return results
 
 def process_inquiries(results):
-    records = {}
+    records = []
     for item in results:
         inquiry_id = item['id']
         attributes = item.get('attributes', {})
@@ -50,20 +50,22 @@ def process_inquiries(results):
         status = attributes.get('status')
         l2_address = attributes.get('fields', {}).get('l-2-address', {}).get('value', '')
 
-        if inquiry_id not in records:
-            records[inquiry_id] = {
-                'inquiry_id': inquiry_id,
-                'name': name,
-                'email_address': email_address,
-                'l2_address': l2_address,
-                'updated_at': updated_at,
-                'status': status
-            }
+        if status == 'approved':
+            status = 'cleared'
 
-    return pd.DataFrame.from_dict(records.values())
+        records.append({
+            'inquiry_id': inquiry_id,
+            'name': name,
+            'email_address': email_address,
+            'l2_address': l2_address,
+            'updated_at': updated_at,
+            'status': status
+        })
+
+    return pd.DataFrame(records)
 
 def process_cases(results):
-    records = {}
+    records = []
     for item in results:
         case_id = item['id']
         attributes = item.get('attributes', {})
@@ -71,18 +73,20 @@ def process_cases(results):
         fields = attributes.get('fields', {})
         business_name = fields.get('business-name', {}).get('value', '')
         updated_at = attributes.get('updated-at')
+        
+        if status == 'approved':
+            status = 'cleared'
 
-        if case_id not in records:
-            records[case_id] = {
-                'case_id': case_id,
-                'business_name': business_name,
-                'email_address': '',  # Placeholder, as email address data is not provided in the JSON response
-                'l2_address': '',  # Placeholder, as l2_address data is not provided in the JSON response
-                'updated_at': updated_at,
-                'status': status
-            }
-
-    return pd.DataFrame.from_dict(records.values())
+        records.append({
+            'case_id': case_id,
+            'business_name': business_name,
+            'email_address': '',  # Placeholder, as email address data is not provided in the JSON response
+            'l2_address': '',  # Placeholder, as l2_address data is not provided in the JSON response
+            'updated_at': updated_at,
+            'status': status
+        })
+            
+    return pd.DataFrame(records)
 
 def fetch_csv(owner, repo, path, access_token):
     url = f"https://api.github.com/repos/{owner}/{repo}/contents/{path}"
@@ -102,103 +106,61 @@ def fetch_csv(owner, repo, path, access_token):
 def main():
     st.title('KYC Database')
     api_key = st.secrets["persona"]["api_key"]
+    access_token = st.secrets["github"]["access_token"]
+    owner = "akathm"
+    repo = "the-trojans"
 
-    if 'inquiries_data' not in st.session_state:
-        st.session_state.inquiries_data = None
-    if 'cases_data' not in st.session_state:
-        st.session_state.cases_data = None
+    inquiries_data = fetch_data(api_key, "https://app.withpersona.com/api/v1/inquiries")
+    cases_data = fetch_data(api_key, "https://app.withpersona.com/api/v1/cases")
+    
+    inquiries_df = process_inquiries(inquiries_data)
+    cases_df = process_cases(cases_data)
+    
+    contributors_path = "grants.contributors.csv"
+    persons_path = "legacy.persons.csv"
 
-    refresh_button = st.button("Refresh")
+    contributors_df = fetch_csv(owner, repo, contributors_path, access_token)
+    persons_df = fetch_csv(owner, repo, persons_path, access_token)
 
-    if refresh_button:
-        inquiries_data = fetch_data(api_key, "https://app.withpersona.com/api/v1/inquiries?refresh=true")
-        cases_data = fetch_data(api_key, "https://app.withpersona.com/api/v1/cases?refresh=true")
-    else:
-        inquiries_data = fetch_data(api_key, "https://app.withpersona.com/api/v1/inquiries")
-        cases_data = fetch_data(api_key, "https://app.withpersona.com/api/v1/cases")
+    if persons_df is not None and 'updated_at' in persons_df.columns:
+        try:
+            persons_df['updated_at'] = pd.to_datetime(persons_df['updated_at'], format='%Y-%m-%d %H:%M:%S%z')
+        except Exception as e:
+            st.error(f"Error converting 'updated_at' to datetime: {e}")
+            st.stop()
 
-    if inquiries_data and cases_data:
-        inquiries_df = process_inquiries(inquiries_data)
-        cases_df = process_cases(cases_data)
+    if inquiries_df is not None and 'updated_at' in inquiries_df.columns:
+        inquiries_df['updated_at'] = pd.to_datetime(inquiries_df['updated_at'], format='%Y-%m-%dT%H:%M:%S.%fZ')
 
-        access_token = st.secrets["github"]["access_token"]
-        owner = "akathm"
-        repo = "the-trojans"
-        contributors_path = "grants.contributors.csv"
-        contributors_df = fetch_csv(owner, repo, contributors_path, access_token)
-        persons_path = "legacy.persons.csv"
-        persons_df = fetch_csv(owner, repo, persons_path, access_token)
+    if persons_df is not None and inquiries_df is not None:
+        current_date_utc = datetime.utcnow().replace(tzinfo=timezone.utc)
+        one_year_ago_utc = current_date_utc - timedelta(days=365)
 
-        if persons_df is not None and 'updated_at' in persons_df.columns:
-            try:
-                persons_df['updated_at'] = pd.to_datetime(persons_df['updated_at'], format='%Y-%m-%d %H:%M:%S%z')
-            except Exception as e:
-                st.error(f"Error converting 'updated_at' to datetime: {e}")
-                st.stop()
+        # Combine GitHub and Persona data
+        all_persons_df = pd.concat([persons_df, inquiries_df], ignore_index=True)
+        all_persons_df['status'] = all_persons_df.sort_values('updated_at').groupby('email_address')['status'].transform('last')
 
-        if contributors_df is not None and persons_df is not None:
-            current_date_utc = datetime.utcnow().replace(tzinfo=timezone.utc)
-            one_year_ago_utc = current_date_utc - timedelta(days=365)
+        all_persons_df.loc[(all_persons_df['status'] == 'cleared') & (all_persons_df['updated_at'] < one_year_ago_utc), 'status'] = 'expired'
 
-            # Process GitHub persons data
-            persons_df['status'] = persons_df.sort_values('updated_at').groupby('email')['status'].transform('last')
-            persons_df.loc[(persons_df['status'] == 'cleared') & (persons_df['updated_at'] < one_year_ago_utc), 'status'] = 'expired'
+        merged_df = contributors_df.merge(all_persons_df[['email_address', 'status']], on='email_address', how='left')
+        merged_df['status'].fillna('not started', inplace=True)
+        merged_df = merged_df[~(merged_df['email_address'].isnull() & merged_df['contributor_id'].isnull())]
+        merged_df.drop_duplicates(subset=['email_address', 'round_id', 'op_amt'], inplace=True)
 
-            # Process Persona inquiries data
-            inquiries_df['updated_at'] = pd.to_datetime(inquiries_df['updated_at'], format='%Y-%m-%dT%H:%M:%S.%fZ')
-            inquiries_df['status'] = inquiries_df.sort_values('updated_at').groupby('email_address')['status'].transform('last')
-            inquiries_df['status'] = inquiries_df['status'].replace('approved', 'cleared')
-            inquiries_df.loc[inquiries_df['updated_at'] < one_year_ago_utc, 'status'] = 'expired'
+        projects_list = ['Ambassadors', 'NumbaNERDs', 'SupportNERDs', 'Translators', 'Badgeholders']
+        projects_selection = st.multiselect('Select the Contributor Path', projects_list + ['Other'], ['Ambassadors', 'NumbaNERDs', 'SupportNERDs', 'Translators', 'Badgeholders', 'Other'])
 
-            # Merge GitHub and Persona data
-            combined_df = pd.concat([persons_df, inquiries_df], ignore_index=True)
-            combined_df['status'] = combined_df.sort_values('updated_at').groupby('email_address')['status'].transform('last')
+        if 'Other' in projects_selection:
+            filtered_df = merged_df[~merged_df['project_name'].isin(projects_list)]
+            if set(projects_selection) - {'Other'}:
+                filtered_df = pd.concat([filtered_df, merged_df[merged_df['project_name'].isin(set(projects_selection) - {'Other'})]])
+        else:
+            filtered_df = merged_df[merged_df['project_name'].isin(projects_selection)] if projects_selection else merged_df
 
-            # Merge with contributors data
-            merged_df = contributors_df.merge(combined_df[['email_address', 'status']], left_on='email', right_on='email_address', how='left')
-            merged_df['status'].fillna('not started', inplace=True)
-            merged_df = merged_df[~(merged_df['email'].isnull() & merged_df['contributor_id'].isnull())]
-            merged_df.drop_duplicates(subset=['email', 'round_id', 'op_amt'], inplace=True)
-
-            projects_list = ['Ambassadors', 'NumbaNERDs', 'SupportNERDs', 'Translators', 'Badgeholders']
-            projects_selection = st.multiselect('Select the Contributor Path', projects_list + ['Other'], ['Ambassadors', 'NumbaNERDs', 'SupportNERDs', 'Translators', 'Badgeholders', 'Other'])
-
-            if 'Other' in projects_selection:
-                filtered_df = merged_df[~merged_df['project_name'].isin(projects_list)]
-                if set(projects_selection) - {'Other'}:
-                    filtered_df = pd.concat([filtered_df, merged_df[merged_df['project_name'].isin(set(projects_selection) - {'Other'})]])
-            else:
-                filtered_df = merged_df[merged_df['project_name'].isin(projects_selection)] if projects_selection else merged_df
-
-            st.write(filtered_df)
-        
-        st.sidebar.header("Lookup Tool")
-        search_input = st.sidebar.text_input("Enter the L2 address, email, or full legal name")
-
-        if st.sidebar.button("Search") and search_input:
-            results = merged_df[merged_df.apply(lambda row: any(search_input.lower() in str(row[col]).lower() for col in ['name', 'l2_address', 'email_address']), axis=1)]
-
-            if not results.empty:
-                for _, row in results.iterrows():
-                    if row['status'] == 'approved':
-                        if 'inquiry_id' in row:
-                            st.write(f"Email: {row['email_address']}, L2 Address: {row['l2_address']}, Message: KYC Status is Cleared")
-                        elif 'case_id' in row:
-                            st.write(f"Email: {row['email_address']}, L2 Address: {row['l2_address']}, Message: KYB Status is Cleared")
-                    else:
-                        if 'inquiry_id' in row:
-                            st.write(f"Message: KYC Status is Pending")
-                        elif 'case_id' in row:
-                            st.write(f"Message: KYB Status is Pending")
-            else:
-                st.write("No results found.")
-
+        st.write(filtered_df)
 
 if __name__ == '__main__':
     main()
-
-
-## REPORT LOOKUP-----------------------------------------------------
 
 st.subheader('Active Grants Rounds')
 
@@ -218,65 +180,9 @@ if response.status_code == 200:
     csv_content = response.content.decode('utf-8')
     df = pd.read_csv(StringIO(csv_content))
     rounds_list = df.round_id.unique()
-    rounds_selection = st.multiselect('Select the Grant Round', rounds_list, ['rpgf2', 'rpgf3', 'season5-builders-19', 'season5-growth-19']) ##['Marketing', 'Token House - S4', 'Token House - S5', 'WLTA', 'RPGF3', 'RPGF2'])
+    rounds_selection = st.multiselect('Select the Grant Round', rounds_list, ['rpgf2', 'rpgf3', 'season5-builders-19', 'season5-growth-19'])
     st.write(df)
 else:
     st.error(f"Failed to fetch the file: {response.status_code}")
 
-
-st.subheader ('Individual Contributors')
-
-def fetch_csv(owner, repo, path, access_token):
-    url = f"https://api.github.com/repos/{owner}/{repo}/contents/{path}"
-    headers = {
-        "Authorization": f"token {access_token}",
-        "Accept": "application/vnd.github.v3.raw"
-    }
-    response = requests.get(url, headers=headers)
-    if response.status_code == 200:
-        csv_content = response.content.decode('utf-8')
-        df = pd.read_csv(StringIO(csv_content))
-        return df
-    else:
-        st.error(f"Failed to fetch the file from {path}: {response.status_code}")
-        return None
-
-access_token = st.secrets["github"]["access_token"]
-owner = "akathm"
-repo = "the-trojans"
-contributors_path = "grants.contributors.csv"
-contributors_df = fetch_csv(owner, repo, contributors_path, access_token)
-persons_path = "legacy.persons.csv"
-persons_df = fetch_csv(owner, repo, persons_path, access_token)
-
-if persons_df is not None and 'updated_at' in persons_df.columns:
-    try:
-        persons_df['updated_at'] = pd.to_datetime(persons_df['updated_at'], format='%Y-%m-%d %H:%M:%S%z')
-    except Exception as e:
-        st.error(f"Error converting 'updated_at' to datetime: {e}")
-        st.stop()
-
-if contributors_df is not None and persons_df is not None:
-    persons_df['status'] = persons_df.sort_values('updated_at').groupby('email')['status'].transform('last')
-    
-    current_date_utc = datetime.utcnow().replace(tzinfo=timezone.utc)  # Define current_date_utc
-    
-    one_year_ago_utc = current_date_utc - timedelta(days=365)
-    persons_df.loc[(persons_df['status'] == 'cleared') & (persons_df['updated_at'] < one_year_ago_utc), 'status'] = 'expired'
-
-    merged_df = contributors_df.merge(persons_df[['email', 'status']], on='email', how='left')
-    merged_df['status'].fillna('not started', inplace=True)
-    merged_df = merged_df[~(merged_df['email'].isnull() & merged_df['contributor_id'].isnull())]
-    merged_df.drop_duplicates(subset=['email', 'round_id', 'op_amt'], inplace=True)
-
-    projects_list = ['Ambassadors', 'NumbaNERDs', 'SupportNERDs', 'Translators', 'Badgeholders']
-    projects_selection = st.multiselect('Select the Contributor Path', projects_list + ['Other'], ['Ambassadors', 'NumbaNERDs', 'SupportNERDs', 'Translators', 'Badgeholders', 'Other']) 
-  
-    if 'Other' in projects_selection:
-        filtered_df = merged_df[~merged_df['project_name'].isin(projects_list)]
-        if set(projects_selection) - {'Other'}:
-            filtered_df = pd.concat([filtered_df, merged_df[merged_df['project_name'].isin(set(projects_selection) - {'Other'})]])
-    else:
-        filtered_df = merged_df[merged_df['project_name'].isin(projects_selection)] if projects_selection else merged_df
-   
-    st.write(filtered_df)
+st.subheader('Individual Contributors')
