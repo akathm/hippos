@@ -189,6 +189,50 @@ contributors_df = fetch_csv(owner, repo, contributors_path, access_token)
 persons_path = "legacy.persons.csv"
 persons_df = fetch_csv(owner, repo, persons_path, access_token)
 
+##-----------
+
+persona_df = process_inquiries(results)
+
+if contributors_df is not None and persons_df is not None and persona_df is not None:
+    try:
+        # Convert updated_at columns to datetime with timezone information
+        persons_df['updated_at'] = pd.to_datetime(persons_df['updated_at'], format='%Y-%m-%d %H:%M:%S%z')
+        
+        # Filter Persona data for valid entries and merge
+        valid_persona_df = persona_df.dropna(subset=['inquiry_id'])
+        valid_persona_df['updated_at'] = pd.to_datetime(valid_persona_df['updated_at'], format='%Y-%m-%d %H:%M:%S%z')
+        current_date = datetime.now()
+        one_year_ago = current_date - timedelta(days=365)
+        valid_persona_df = valid_persona_df[valid_persona_df['updated_at'] >= one_year_ago]
+        
+        # Merge with persons_df based on email or full name if exact match found
+        merged_df = pd.merge(contributors_df, persons_df, how='left', on=['email', 'full_name'])
+        merged_df = pd.merge(merged_df, valid_persona_df[['email', 'status']], how='left', on='email', suffixes=('', '_persona'))
+        
+        # Handle status based on conditions
+        merged_df['status'] = merged_df.apply(lambda row: row['status_persona'] if pd.notna(row['inquiry_id']) else row['status'], axis=1)
+        merged_df['status'].fillna('not started', inplace=True)
+        
+        # Display filtered and merged dataframe based on project selection
+        projects_list = ['Ambassadors', 'NumbaNERDs', 'SupportNERDs', 'Translators', 'Badgeholders']
+        projects_selection = st.multiselect('Select the Contributor Path', projects_list + ['Other'], projects_list)
+        
+        if 'Other' in projects_selection:
+            filtered_df = merged_df[~merged_df['project_name'].isin(projects_list)]
+            if set(projects_selection) - {'Other'}:
+                filtered_df = pd.concat([filtered_df, merged_df[merged_df['project_name'].isin(set(projects_selection) - {'Other'})]])
+        else:
+            filtered_df = merged_df[merged_df['project_name'].isin(projects_selection)] if projects_selection else merged_df
+        
+        # Display the filtered dataframe
+        st.subheader('Individual Contributors')
+        st.write(filtered_df)
+
+    except Exception as e:
+        st.error(f"Error processing data: {e}")
+
+##-----------
+_ = """
 if persons_df is not None and 'updated_at' in persons_df.columns:
     try:
         persons_df['updated_at'] = pd.to_datetime(persons_df['updated_at'], format='%Y-%m-%d %H:%M:%S%z')
@@ -220,4 +264,4 @@ if contributors_df is not None and persons_df is not None:
         filtered_df = merged_df[merged_df['project_name'].isin(projects_selection)] if projects_selection else merged_df
    
     st.write(filtered_df)
-
+"""
