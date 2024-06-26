@@ -45,7 +45,7 @@ def process_inquiries(results):
         name_middle = attributes.get('name-middle', '') or ''
         name_last = attributes.get('name-last', '') or ''
         name = f"{name_first} {name_middle} {name_last}".strip()
-        email_address = attributes.get('email-address', '') or ''
+        email = attributes.get('email', '') or ''
         updated_at = attributes.get('updated-at')
         status = attributes.get('status')
         l2_address = attributes.get('fields', {}).get('l-2-address', {}).get('value', '')
@@ -56,7 +56,7 @@ def process_inquiries(results):
         records.append({
             'inquiry_id': inquiry_id,
             'name': name,
-            'email_address': email_address,
+            'email': email,
             'l2_address': l2_address,
             'updated_at': updated_at,
             'status': status
@@ -80,7 +80,7 @@ def process_cases(results):
         records.append({
             'case_id': case_id,
             'business_name': business_name,
-            'email_address': '',  # Placeholder, as email address data is not provided in the JSON response
+            'email': '',  # Placeholder, as email address data is not provided in the JSON response
             'l2_address': '',  # Placeholder, as l2_address data is not provided in the JSON response
             'updated_at': updated_at,
             'status': status
@@ -138,14 +138,14 @@ def main():
 
         # Combine GitHub and Persona data
         all_persons_df = pd.concat([persons_df, inquiries_df], ignore_index=True)
-        all_persons_df['status'] = all_persons_df.sort_values('updated_at').groupby('email_address')['status'].transform('last')
+        all_persons_df['status'] = all_persons_df.sort_values('updated_at').groupby('email')['status'].transform('last')
 
         all_persons_df.loc[(all_persons_df['status'] == 'cleared') & (all_persons_df['updated_at'] < one_year_ago_utc), 'status'] = 'expired'
 
-        merged_df = contributors_df.merge(all_persons_df[['email_address', 'status']], on='email_address', how='left')
+        merged_df = contributors_df.merge(all_persons_df[['email', 'status']], on='email', how='left')
         merged_df['status'].fillna('not started', inplace=True)
-        merged_df = merged_df[~(merged_df['email_address'].isnull() & merged_df['contributor_id'].isnull())]
-        merged_df.drop_duplicates(subset=['email_address', 'round_id', 'op_amt'], inplace=True)
+        merged_df = merged_df[~(merged_df['email'].isnull() & merged_df['contributor_id'].isnull())]
+        merged_df.drop_duplicates(subset=['email', 'round_id', 'op_amt'], inplace=True)
 
         projects_list = ['Ambassadors', 'NumbaNERDs', 'SupportNERDs', 'Translators', 'Badgeholders']
         projects_selection = st.multiselect('Select the Contributor Path', projects_list + ['Other'], ['Ambassadors', 'NumbaNERDs', 'SupportNERDs', 'Translators', 'Badgeholders', 'Other'])
