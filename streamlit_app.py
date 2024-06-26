@@ -16,6 +16,9 @@ with st.expander('About the Results'):
     st.markdown('**What should I do if a project I\'m talking to is not in *\"cleared\"* status?**')
     st.warning('If you see a project is in *\"pending\"* status, this means that we are waiting on action from that team. Please direct them to check their emails: one or more responsible parties have been emailed with a link to complete further steps in the KYC process.')
 
+
+## PERSONA-------------------------------------------------------------------
+
 @st.cache_data(ttl=600)
 def fetch_data(api_key, base_url):
     results = []
@@ -88,6 +91,9 @@ def process_cases(results):
             
     return pd.DataFrame(records)
 
+
+## LEGACY DATA -------------------------------------------------------------------
+
 def fetch_csv(owner, repo, path, access_token):
     url = f"https://api.github.com/repos/{owner}/{repo}/contents/{path}"
     headers = {
@@ -102,6 +108,7 @@ def fetch_csv(owner, repo, path, access_token):
     else:
         st.error(f"Failed to fetch the file from {path}: {response.status_code}")
         return None
+
 
 def main():
     st.title('KYC Database')
@@ -163,6 +170,7 @@ def main():
 if __name__ == '__main__':
     main()
 
+_="""
 st.subheader('Active Grants Rounds')
 
 access_token = st.secrets["github"]["access_token"]
@@ -185,4 +193,4 @@ if response.status_code == 200:
     st.write(df)
 else:
     st.error(f"Failed to fetch the file: {response.status_code}")
-
+"""
