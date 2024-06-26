@@ -191,6 +191,13 @@ def main():
 ## Grants Rounds--------------------------------------------
         
     st.subheader('Active Grants Rounds')
+    
+    url = "https://api.github.com/repos/akathm/the-trojans/contents/grants.projects.csv"
+
+    headers = {
+        "Authorization": f"token {st.secrets['github']['access_token']}",
+        "Accept": "application/vnd.github.v3.raw"
+    }
 
     response = requests.get(url, headers=headers)
 
