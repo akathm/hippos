@@ -124,13 +124,13 @@ def main():
 
     if persons_df is not None and 'updated_at' in persons_df.columns:
         try:
-            persons_df['updated_at'] = pd.to_datetime(persons_df['updated_at'], format='%Y-%m-%d %H:%M:%S%z')
+            persons_df['updated_at'] = pd.to_datetime(persons_df['updated_at'], utc=True)
         except Exception as e:
             st.error(f"Error converting 'updated_at' to datetime: {e}")
             st.stop()
 
     if inquiries_df is not None and 'updated_at' in inquiries_df.columns:
-        inquiries_df['updated_at'] = pd.to_datetime(inquiries_df['updated_at'], format='%Y-%m-%dT%H:%M:%S.%fZ')
+        inquiries_df['updated_at'] = pd.to_datetime(inquiries_df['updated_at'], utc=True)
 
     if persons_df is not None and inquiries_df is not None:
         current_date_utc = datetime.utcnow().replace(tzinfo=timezone.utc)
