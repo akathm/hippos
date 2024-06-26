@@ -179,29 +179,29 @@ def main():
     projects_list = ['Ambassadors', 'NumbaNERDs', 'SupportNERDs', 'Translators', 'Badgeholders']
     projects_selection = st.multiselect('Select the Contributor Path', projects_list + ['Other'], ['Ambassadors', 'NumbaNERDs', 'SupportNERDs', 'Translators', 'Badgeholders', 'Other'])
 
-        if 'Other' in projects_selection:
-            filtered_df = merged_df[~merged_df['project_name'].isin(projects_list)]
-            if set(projects_selection) - {'Other'}:
-                filtered_df = pd.concat([filtered_df, merged_df[merged_df['project_name'].isin(set(projects_selection) - {'Other'})]])
-        else:
-            filtered_df = merged_df[merged_df['project_name'].isin(projects_selection)] if projects_selection else merged_df
+    if 'Other' in projects_selection:
+        filtered_df = merged_df[~merged_df['project_name'].isin(projects_list)]
+        if set(projects_selection) - {'Other'}:
+            filtered_df = pd.concat([filtered_df, merged_df[merged_df['project_name'].isin(set(projects_selection) - {'Other'})]])
+    else:
+        filtered_df = merged_df[merged_df['project_name'].isin(projects_selection)] if projects_selection else merged_df
             
-        st.write(filtered_df)
+    st.write(filtered_df)
         
 ## Grants Rounds--------------------------------------------
         
     st.subheader('Active Grants Rounds')
 
-        response = requests.get(url, headers=headers)
+    response = requests.get(url, headers=headers)
 
-        if response.status_code == 200:
-            csv_content = response.content.decode('utf-8')
-            df = pd.read_csv(StringIO(csv_content))
-            rounds_list = df.round_id.unique()
-            rounds_selection = st.multiselect('Select the Grant Round', rounds_list, ['rpgf2', 'rpgf3', 'season5-builders-19', 'season5-growth-19']) ##['Marketing', 'Token House - S4', 'Token House - S5', 'WLTA', 'RPGF3', 'RPGF2'])
-            st.write(df)
-        else:
-            st.error(f"Failed to fetch the file: {response.status_code}")
+    if response.status_code == 200:
+        csv_content = response.content.decode('utf-8')
+        df = pd.read_csv(StringIO(csv_content))
+        rounds_list = df.round_id.unique()
+        rounds_selection = st.multiselect('Select the Grant Round', rounds_list, ['rpgf2', 'rpgf3', 'season5-builders-19', 'season5-growth-19']) ##['Marketing', 'Token House - S4', 'Token House - S5', 'WLTA', 'RPGF3', 'RPGF2'])
+        st.write(df)
+    else:
+        st.error(f"Failed to fetch the file: {response.status_code}")
         
 
 if __name__ == '__main__':
