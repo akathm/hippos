@@ -205,11 +205,20 @@ def main():
         csv_content = response.content.decode('utf-8')
         df = pd.read_csv(StringIO(csv_content))
         rounds_list = df.round_id.unique()
-        rounds_selection = st.multiselect('Select the Grant Round', rounds_list, ['rpgf2', 'rpgf3', 'season5-builders-19', 'season5-growth-19']) ##['Marketing', 'Token House - S4', 'Token House - S5', 'WLTA', 'RPGF3', 'RPGF2'])
-        st.write(df)
+        rounds_selection = st.multiselect('Select the Grant Round', list(rounds_list) + ['Other'], ['rpgf2', 'rpgf3', 'season5-builders-19', 'season5-growth-19'])
+        
+        if 'Other' in rounds_selection:
+            filtered_df = df[~df['round_id'].isin(['rpgf2', 'rpgf3', 'season5-builders-19', 'season5-growth-19'])]
+            if set(rounds_selection) - {'Other'}:
+                filtered_df = pd.concat([filtered_df, df[df['round_id'].isin(set(rounds_selection) - {'Other'})]])
+        else:
+            filtered_df = df[df['round_id'].isin(rounds_selection)] if rounds_selection else df
+            
+        st.write(filtered_df)
     else:
         st.error(f"Failed to fetch the file: {response.status_code}")
-        
+
+
 
 if __name__ == '__main__':
     main()
