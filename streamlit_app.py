@@ -150,11 +150,13 @@ def main():
     projects_path = "grants.projects.csv"
     persons_path = "legacy.persons.csv"
     businesses_path = "legacy.businesses.csv"
+    form_path = "legacy.form.csv"
 
     contributors_df = fetch_csv(owner, repo, contributors_path, access_token)
     projects_df = fetch_csv(owner, repo, contributors_path, access_token)
     persons_df = fetch_csv(owner, repo, persons_path, access_token)
-    businesses_df = fetch_csv(owner, repo, contributors_path, access_token)
+    businesses_df = fetch_csv(owner, repo, businesses_path, access_token)
+    form_df = fetch_csv(owner, repo, form_path, access_token)
 
     if persons_df is not None and 'updated_at' in persons_df.columns:
         try:
