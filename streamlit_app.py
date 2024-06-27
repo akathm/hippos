@@ -29,7 +29,11 @@ def fetch_data(api_key, base_url):
     while True:
         response = requests.get(base_url, headers=headers, params=params)
         response_data = response.json()
-        results.extend(response_data.get('data', []))
+    
+        if 'data' in response_data:
+            filtered_inquiries = [inquiry for inquiry in response_data['data'] if inquiry['attributes']['status'] not in ['created', 'open']]
+            results.extend(filtered_inquiries)
+        
         next_link = response_data.get('links', {}).get('next')
         if next_link:
             next_cursor = next_link.split('page%5Bafter%5D=')[-1].split('&')[0]
