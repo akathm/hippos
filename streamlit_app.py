@@ -144,7 +144,7 @@ def main():
             cases_data = st.session_state.cases_data
 
     option = st.sidebar.selectbox('Select an Option', ['Grants Round', 'Contribution Path', 'Superchain', 'Vendor'])
-    search_term = st.sidebar.text_input('Enter the l2_address or email')
+    search_term = st.sidebar.text_input('Enter the delivery address or email')
 
     inquiries_df = process_inquiries(inquiries_data)
     cases_df = process_cases(cases_data)
