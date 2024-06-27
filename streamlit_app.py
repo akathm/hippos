@@ -270,8 +270,8 @@ def display_results(df, columns, message, status_column='status'):
         unsafe_allow_html=True
     )
         
-        display_results(filtered_df, , 
-                        "This project is {status} for KYC.")
+    display_results(filtered_df, , 
+                    "This project is {status} for KYC.")
 
 ## Contributors-------------------------------------------------------
     
