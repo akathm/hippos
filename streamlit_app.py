@@ -244,7 +244,7 @@ def display_results(df, columns, message, status_column='status'):
         st.write("No matching results found.")
         return
     
-    st.write(df[['project_name', 'email', 'l2_address', 'round_id', 'grant_id']])
+    st.write(df[columns])
 
     most_recent_status = df.loc[df['updated_at'].idxmax(), status_column]
     formatted_status = f"<span style='color: "
@@ -270,8 +270,8 @@ def display_results(df, columns, message, status_column='status'):
         unsafe_allow_html=True
     )
         
-    display_results(filtered_df, , 
-                    "This project is {status} for KYC.")
+columns = ['project_name', 'email', 'l2_address', 'round_id', 'grant_id']
+message = "This project is {status} for KYC."
 
 ## Contributors-------------------------------------------------------
     
