@@ -270,8 +270,9 @@ def display_results(df, columns, message, status_column='status'):
         unsafe_allow_html=True
     )
         
-columns = ['project_name', 'email', 'l2_address', 'round_id', 'grant_id']
-message = "This project is {status} for KYC."
+    columns = ['project_name', 'email', 'l2_address', 'round_id', 'grant_id']
+    message = "This project is {status} for KYC."
+    display_results(filtered_df, columns, "This project is {status} for KYC.")
 
 ## Contributors-------------------------------------------------------
     
