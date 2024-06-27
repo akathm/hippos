@@ -197,11 +197,33 @@ def main():
         if df.empty:
             st.write("No matching results found.")
             return
+        
         st.write(df[columns])
 
         most_recent_status = df.loc[df['updated_at'].idxmax(), status_column]
-        st.write(f"### {message.format(status=most_recent_status)}")
+        formatted_status = f"<span style='color: "
+        
+        if most_recent_status == 'cleared':
+            formatted_status += "green;'>"
+        elif most_recent_status == 'not started':
+            formatted_status += "grey;'>"
+        elif most_recent_status == 'rejected':
+            formatted_status += "red;'>"
+        else:
+            formatted_status += "blue;'>"
+        
+        formatted_status += f"{most_recent_status}</span>"
+        formatted_message = message.format(status=formatted_status)
 
+        st.markdown(
+            f"""
+            <div style="text-align: center;">
+                <h2><em>{formatted_message}</em></h2>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+        
     def merge_addresses(df1, df2, key):
         return pd.merge(df1, df2, on=key, how='outer')
 
@@ -216,66 +238,31 @@ def main():
     
         display_results(filtered_df, columns_to_display, message, status_column)
 
-    
-if option in ['Superchain', 'Vendor']:
-    if search_term:
-        search_and_display(businesses_df, cases_df, search_term, ['name', 'email', 'l2_address', 'updated_at'], 
-                           "This team is {status} for KYB.")
-elif option == 'Contribution Path':
-    if 'avatar' not in persons_df.columns:
-        persons_df['avatar'] = ''
-    if search_term:
-        search_and_display(persons_df, inquiries_df, search_term, ['avatar', 'email', 'l2_address', 'updated_at'], 
-                           "This contributor is {status} for KYC.")
-elif option == 'Grants Round':
-    form_df['grant_id'] = form_df['grant_id'].astype(str)
-    projects_df['grant_id'] = projects_df['grant_id'].astype(str)
-    merged_df = pd.merge(form_df, projects_df, on=['grant_id', 'l2_address', 'email'], how='left')
-    
-    if search_term:
-        filtered_df = merged_df[
-            merged_df['project_name'].str.contains(search_term, case=False, na=False) |
-            merged_df['email'].str.contains(search_term, case=False, na=False) |
-            merged_df['l2_address'].str.contains(search_term, case=False, na=False)
-        ]
-
-def display_results(df, columns, message, status_column='status'):
-    if df.empty:
-        st.write("No matching results found.")
-        return
-    
-    st.write(df[columns])
-
-    most_recent_status = df.loc[df['updated_at'].idxmax(), status_column]
-    formatted_status = f"<span style='color: "
-    
-    if most_recent_status == 'cleared':
-        formatted_status += "green;'>"
-    elif most_recent_status == 'not started':
-        formatted_status += "grey;'>"
-    elif most_recent_status == 'rejected':
-        formatted_status += "red;'>"
-    else:
-        formatted_status += "blue;'>"
-    
-    formatted_status += f"{most_recent_status}</span>"
-    formatted_message = message.format(status=formatted_status)
-
-    st.markdown(
-        f"""
-        <div style="text-align: center;">
-            <h2><em>{formatted_message}</em></h2>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+    if option in ['Superchain', 'Vendor']:
+        if search_term:
+            search_and_display(businesses_df, cases_df, search_term, ['name', 'email', 'l2_address', 'updated_at'], 
+                               "This team is {status} for KYB.")
+    elif option == 'Contribution Path':
+        if 'avatar' not in persons_df.columns:
+            persons_df['avatar'] = ''
+        if search_term:
+            search_and_display(persons_df, inquiries_df, search_term, ['avatar', 'email', 'l2_address', 'updated_at'], 
+                               "This contributor is {status} for KYC.")
+    elif option == 'Grants Round':
+        form_df['grant_id'] = form_df['grant_id'].astype(str)
+        projects_df['grant_id'] = projects_df['grant_id'].astype(str)
+        merged_df = pd.merge(form_df, projects_df, on=['grant_id', 'l2_address', 'email'], how='left')
         
-    columns = ['project_name', 'email', 'l2_address', 'round_id', 'grant_id']
-    message = "This project is {status} for KYC."
-    display_results(filtered_df, columns, "This project is {status} for KYC.")
+        if search_term:
+            filtered_df = merged_df[
+                merged_df['project_name'].str.contains(search_term, case=False, na=False) |
+                merged_df['email'].str.contains(search_term, case=False, na=False) |
+                merged_df['l2_address'].str.contains(search_term, case=False, na=False)
+            ]
 
-## Contributors-------------------------------------------------------
-    
+        display_results(filtered_df, columns, "This project is {status} for KYC.")
+
+    ## Contributors-------------------------------------------------------
     st.subheader('Individual Contributors')
         
     all_persons_df = pd.concat([persons_df, inquiries_df], ignore_index=True)
@@ -297,11 +284,10 @@ def display_results(df, columns, message, status_column='status'):
             filtered_df = pd.concat([filtered_df, merged_df[merged_df['project_name'].isin(set(projects_selection) - {'Other'})]])
     else:
         filtered_df = merged_df[merged_df['project_name'].isin(projects_selection)] if projects_selection else merged_df
-            
+        
     st.write(filtered_df)
         
-## Grants Rounds--------------------------------------------
-        
+    ## Grants Rounds-------------------------------------------------------
     st.subheader('Active Grants Rounds')
     
     url = "https://api.github.com/repos/akathm/the-trojans/contents/grants.projects.csv"
@@ -317,23 +303,19 @@ def display_results(df, columns, message, status_column='status'):
         csv_content = response.content.decode('utf-8')
         df = pd.read_csv(StringIO(csv_content))
         rounds_list = df.round_id.unique()
-        rounds_selection = st.multiselect('Select the Grant Round', list(rounds_list), ['rpgf2', 'rpgf3', 'season5-builders-19', 'season5-growth-19'])
-        
-        if 'Other' in rounds_selection:
-            filtered_df = df[~df['round_id'].isin(['rpgf2', 'rpgf3', 'season5-builders-19', 'season5-growth-19'])]
-            if set(rounds_selection) - {'Other'}:
-                filtered_df = pd.concat([filtered_df, df[df['round_id'].isin(set(rounds_selection) - {'Other'})]])
+        rounds_selection = st.multiselect('Select the Grant Round', list(rounds_list))
+
+        if rounds_selection:
+            filtered_df = df[df.round_id.isin(rounds_selection)]
+            st.write(filtered_df)
         else:
-            filtered_df = df[df['round_id'].isin(rounds_selection)] if rounds_selection else df
-            
-        st.write(filtered_df)
+            st.write("Select one or more grant rounds.")
     else:
-        st.error(f"Failed to fetch the file: {response.status_code}")
-
-
+        st.write("Failed to retrieve data from GitHub. Please check the GitHub repository settings.")
 
 if __name__ == '__main__':
     main()
+
 
 _="""
 
