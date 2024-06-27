@@ -82,9 +82,9 @@ def process_cases(results):
 
         records.append({
             'case_id': case_id,
-            'business_name': business_name,
-            'email': '',  # Placeholder, as email address data is not provided in the JSON response
-            'l2_address': '',  # Placeholder, as l2_address data is not provided in the JSON response
+            'name': business_name,
+            'email': '',
+            'l2_address': '',
             'updated_at': updated_at,
             'status': status
         })
