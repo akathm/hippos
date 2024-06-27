@@ -142,7 +142,10 @@ def main():
             st.session_state.cases_data = cases_data
         else:
             cases_data = st.session_state.cases_data
-    
+
+    option = st.sidebar.selectbox('Select an Option', ['Grants Round', 'Contribution Path', 'Superchain', 'Vendor'])
+    search_term = st.sidebar.text_input('Enter search term (name, l2_address, or email)')
+
     inquiries_df = process_inquiries(inquiries_data)
     cases_df = process_cases(cases_data)
     
@@ -185,6 +188,48 @@ def main():
     if businesses_df is not None and businesses_df is not None:
         current_date_utc = datetime.utcnow().replace(tzinfo=timezone.utc)
         one_year_ago_utc = current_date_utc - timedelta(days=365)
+
+    def display_results(df, columns, message, status_column='status'):
+        if df.empty:
+            st.write("No matching results found.")
+            return
+        st.write(df[columns])
+
+        most_recent_status = df.loc[df['updated_at'].idxmax(), status_column]
+        st.write(f"### {message.format(status=most_recent_status)}")
+
+    def merge_addresses(df1, df2, key):
+        return pd.merge(df1, df2, on=key, how='outer')
+
+    def search_and_display(df1, df2, search_term, columns_to_display, message, status_column='status'):
+        merged_df = pd.concat([df1, df2], ignore_index=True)
+
+        filtered_df = merged_df[
+            merged_df['name'].str.contains(search_term, case=False, na=False) |
+            merged_df['email'].str.contains(search_term, case=False, na=False) |
+            merged_df['l2_address'].str.contains(search_term, case=False, na=False)
+        ]
+    
+        display_results(filtered_df, columns_to_display, message, status_column)
+
+    if option in ['Superchain', 'Vendor']:
+        search_and_display(businesses_df, cases_df, search_term, ['name', 'email', 'l2_address', 'updated_at'], 
+                       "This team is {status} for KYB.")
+    elif option == 'Contribution Path':
+        search_and_display(persons_df, inquiries_df, search_term, ['avatar', 'email', 'l2_address', 'updated_at'], 
+                       "This contributor is {status} for KYC.")
+    elif option == 'Grants Round':
+        merged_df = pd.merge(form_df, projects_df, on=['grant_id', 'delivery_address', 'email'], how='left')
+    
+        filtered_df = merged_df[
+            merged_df['project_name'].str.contains(search_term, case=False, na=False) |
+            merged_df['email'].str.contains(search_term, case=False, na=False) |
+            merged_df['l2_address'].str.contains(search_term, case=False, na=False)
+        ]
+    
+        display_results(filtered_df, ['project_name', 'email', 'l2_address', 'round_id', 'grant_id'], 
+                    "This project is {status} for KYC.")
+
 
 ## Contributors-------------------------------------------------------
     
