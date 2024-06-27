@@ -216,28 +216,62 @@ def main():
     
         display_results(filtered_df, columns_to_display, message, status_column)
 
-    if option in ['Superchain', 'Vendor']:
-        search_and_display(businesses_df, cases_df, search_term, ['name', 'email', 'l2_address', 'updated_at'], 
-                       "This team is {status} for KYB.")
-    elif option == 'Contribution Path':
-        if 'avatar' not in persons_df.columns:
-            persons_df['avatar'] = ''
-        search_and_display(persons_df, inquiries_df, search_term, ['avatar', 'email', 'l2_address', 'updated_at'], 
-                       "This contributor is {status} for KYC.")
-    elif option == 'Grants Round':
-        form_df['grant_id'] = form_df['grant_id'].astype(str)
-        projects_df['grant_id'] = projects_df['grant_id'].astype(str)
-        merged_df = pd.merge(form_df, projects_df, on=['grant_id', 'l2_address', 'email'], how='left')
     
+if option in ['Superchain', 'Vendor']:
+    if search_term:
+        search_and_display(businesses_df, cases_df, search_term, ['name', 'email', 'l2_address', 'updated_at'], 
+                           "This team is {status} for KYB.")
+elif option == 'Contribution Path':
+    if 'avatar' not in persons_df.columns:
+        persons_df['avatar'] = ''
+    if search_term:
+        search_and_display(persons_df, inquiries_df, search_term, ['avatar', 'email', 'l2_address', 'updated_at'], 
+                           "This contributor is {status} for KYC.")
+elif option == 'Grants Round':
+    form_df['grant_id'] = form_df['grant_id'].astype(str)
+    projects_df['grant_id'] = projects_df['grant_id'].astype(str)
+    merged_df = pd.merge(form_df, projects_df, on=['grant_id', 'l2_address', 'email'], how='left')
+    
+    if search_term:
         filtered_df = merged_df[
             merged_df['project_name'].str.contains(search_term, case=False, na=False) |
             merged_df['email'].str.contains(search_term, case=False, na=False) |
             merged_df['l2_address'].str.contains(search_term, case=False, na=False)
         ]
-    
-        display_results(filtered_df, ['project_name', 'email', 'l2_address', 'round_id', 'grant_id'], 
-                    "This project is {status} for KYC.")
 
+def display_results(df, columns, message, status_column='status'):
+    if df.empty:
+        st.write("No matching results found.")
+        return
+    
+    st.write(df[['project_name', 'email', 'l2_address', 'round_id', 'grant_id']])
+
+    most_recent_status = df.loc[df['updated_at'].idxmax(), status_column]
+    formatted_status = f"<span style='color: "
+    
+    if most_recent_status == 'cleared':
+        formatted_status += "green;'>"
+    elif most_recent_status == 'not started':
+        formatted_status += "grey;'>"
+    elif most_recent_status == 'rejected':
+        formatted_status += "red;'>"
+    else:
+        formatted_status += "blue;'>"
+    
+    formatted_status += f"{most_recent_status}</span>"
+    formatted_message = message.format(status=formatted_status)
+
+    st.markdown(
+        f"""
+        <div style="text-align: center;">
+            <h2><em>{formatted_message}</em></h2>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+        
+        display_results(filtered_df, , 
+                        "This project is {status} for KYC.")
 
 ## Contributors-------------------------------------------------------
     
