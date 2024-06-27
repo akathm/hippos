@@ -216,6 +216,8 @@ def main():
         search_and_display(businesses_df, cases_df, search_term, ['name', 'email', 'l2_address', 'updated_at'], 
                        "This team is {status} for KYB.")
     elif option == 'Contribution Path':
+        if 'avatar' not in persons_df.columns:
+            persons_df['avatar'] = ''
         search_and_display(persons_df, inquiries_df, search_term, ['avatar', 'email', 'l2_address', 'updated_at'], 
                        "This contributor is {status} for KYC.")
     elif option == 'Grants Round':
