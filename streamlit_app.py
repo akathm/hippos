@@ -221,7 +221,7 @@ def main():
     elif option == 'Grants Round':
         form_df['grant_id'] = form_df['grant_id'].astype(str)
         projects_df['grant_id'] = projects_df['grant_id'].astype(str)
-        merged_df = pd.merge(form_df, projects_df, on=['grant_id', 'delivery_address', 'email'], how='left')
+        merged_df = pd.merge(form_df, projects_df, on=['grant_id', 'l2_address', 'email'], how='left')
     
         filtered_df = merged_df[
             merged_df['project_name'].str.contains(search_term, case=False, na=False) |
