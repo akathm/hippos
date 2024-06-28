@@ -248,7 +248,7 @@ def main():
     merged_df.drop_duplicates(subset=['email', 'round_id', 'op_amt'], inplace=True)
 
     projects_list = ['Ambassadors', 'NumbaNERDs', 'SupportNERDs', 'Translators', 'Badgeholders']
-    projects_selection = st.multiselect('Select the Contributor Path', projects_list + ['Other'], ['Ambassadors', 'NumbaNERDs', 'SupportNERDs', 'Translators', 'Badgeholders', 'Other'])
+    projects_selection = st.multiselect('Select the Contributor Path', projects_list + ['Other'], ['Ambassadors', 'NumbaNERDs', 'SupportNERDs', 'Translators', 'Badgeholders', 'WLTA', 'WLTA Judge', 'Other'])
 
     if 'Other' in projects_selection:
         filtered_df = merged_df[~merged_df['project_name'].isin(projects_list)]
