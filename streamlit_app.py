@@ -235,13 +235,13 @@ def main():
             merged_df['l2_address'].str.contains(search_term, case=False, na=False)
         ]
     
-        display_results(filtered_df, ['project_name', 'email', 'l2_address', 'round_id', 'grant_id'], 
+        display_results(filtered_df, ['project_name', 'email', 'l2_address', 'round_id', 'grant_id', 'status'], 
                     "This project is {status} for KYC.")
 
 
 ## Contributors-------------------------------------------------------
     
-    st.subheader('Individual Contributors')
+    st.header('Individual Contributors')
         
     all_persons_df = pd.concat([persons_df, inquiries_df], ignore_index=True)
     all_persons_df['status'] = all_persons_df.sort_values('updated_at').groupby('email')['status'].transform('last')
@@ -267,7 +267,7 @@ def main():
         
 ## Grants Rounds--------------------------------------------
         
-    st.subheader('Active Grants Rounds')
+    st.header('Active Grants Rounds')
     
     url = "https://api.github.com/repos/akathm/the-trojans/contents/grants.projects.csv"
 
