@@ -95,36 +95,25 @@ def process_cases(results):
     return pd.DataFrame(records)
 
 
-def main():
-
-
 ## LEGACY DATA -------------------------------------------------------------------
 
-    def fetch_csv(owner, repo, path, access_token):
-        url = f"https://api.github.com/repos/{owner}/{repo}/contents/{path}"
-        headers = {
-            "Authorization": f"token {access_token}",
-            "Accept": "application/vnd.github.v3.raw"
-        }
-        response = requests.get(url, headers=headers)
-        if response.status_code == 200:
-            csv_content = response.content.decode('utf-8')
-            df = pd.read_csv(StringIO(csv_content))
-            return df
-        else:
-            st.error(f"Failed to fetch the file from {path}: {response.status_code}")
-            return None
-
-    def process_inquiries(inquiries_data):
-        df = pd.DataFrame(inquiries_data)
+def fetch_csv(owner, repo, path, access_token):
+    url = f"https://api.github.com/repos/{owner}/{repo}/contents/{path}"
+    headers = {
+        "Authorization": f"token {access_token}",
+        "Accept": "application/vnd.github.v3.raw"
+    }
+    response = requests.get(url, headers=headers)
+    if response.status_code == 200:
+        csv_content = response.content.decode('utf-8')
+        df = pd.read_csv(StringIO(csv_content))
         return df
+    else:
+        st.error(f"Failed to fetch the file from {path}: {response.status_code}")
+        return None
 
-    def process_cases(cases_data):
-        df = pd.DataFrame(cases_data)
-        return df
 
-## QUERY TOOL-----------------------------------------------------------------------
-
+def main():
     st.title('KYC Database')
     
     api_key = st.secrets["persona"]["api_key"]
@@ -170,7 +159,7 @@ def main():
     form_path = "legacy.form.csv"
 
     contributors_df = fetch_csv(owner, repo, contributors_path, access_token)
-    projects_df = fetch_csv(owner, repo, projects_path, access_token)
+    projects_df = fetch_csv(owner, repo, contributors_path, access_token)
     persons_df = fetch_csv(owner, repo, persons_path, access_token)
     businesses_df = fetch_csv(owner, repo, businesses_path, access_token)
     form_df = fetch_csv(owner, repo, form_path, access_token)
@@ -228,7 +217,7 @@ def main():
 
     if option in ['Superchain', 'Vendor']:
         search_and_display(businesses_df, cases_df, search_term, ['name', 'email', 'l2_address', 'updated_at'], 
-                           "This team is {status} for KYB.")
+                       "This team is {status} for KYB.")
     elif option == 'Contribution Path':
         if 'avatar' not in persons_df.columns:
             persons_df['avatar'] = ''
@@ -247,7 +236,7 @@ def main():
         ]
     
         display_results(filtered_df, ['project_name', 'email', 'l2_address', 'round_id', 'grant_id'], 
-                        "This project is {status} for KYC.")
+                    "This project is {status} for KYC.")
 
 
 ## Contributors-------------------------------------------------------
@@ -288,7 +277,7 @@ def main():
     }
 
     response = requests.get(url, headers=headers)
-    
+
     if response.status_code == 200:
         csv_content = response.content.decode('utf-8')
         df = pd.read_csv(StringIO(csv_content))
