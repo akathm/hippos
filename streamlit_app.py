@@ -115,6 +115,14 @@ def main():
             st.error(f"Failed to fetch the file from {path}: {response.status_code}")
             return None
 
+    def process_inquiries(inquiries_data):
+        df = pd.DataFrame(inquiries_data)
+        return df
+
+    def process_cases(cases_data):
+        df = pd.DataFrame(cases_data)
+        return df
+
 ## QUERY TOOL-----------------------------------------------------------------------
 
     st.title('KYC Database')
