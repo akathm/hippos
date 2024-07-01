@@ -216,13 +216,13 @@ def main():
         display_results(filtered_df, columns_to_display, message, status_column)
 
     if option in ['Superchain', 'Vendor']:
-        search_and_display(businesses_df, cases_df, search_term, ['name', 'email', 'l2_address', 'updated_at'], 
+        search_and_display(businesses_df, cases_df, search_term, ['name', 'email', 'l2_address', 'updated_at', 'status'], 
                        "This team is {status} for KYB.")
     elif option == 'Contribution Path':
         if 'avatar' not in persons_df.columns:
             persons_df['avatar'] = ''
         if search_term:
-            search_and_display(persons_df, inquiries_df, search_term, ['avatar', 'email', 'l2_address', 'updated_at'], 
+            search_and_display(persons_df, inquiries_df, search_term, ['avatar', 'email', 'l2_address', 'updated_at', 'status'], 
                                "This contributor is {status} for KYC.")
     elif option == 'Grants Round':
         form_df['grant_id'] = form_df['grant_id'].astype(str)
@@ -240,7 +240,8 @@ def main():
 
 
 ## Contributors-------------------------------------------------------
-    
+
+    st.header('______________________________________')
     st.header('Individual Contributors')
         
     all_persons_df = pd.concat([persons_df, inquiries_df], ignore_index=True)
