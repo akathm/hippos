@@ -219,7 +219,7 @@ def main():
         merged_df = pd.concat([df1, df2], ignore_index=True)
 
         filtered_df = merged_df[
-            merged_df['name'].str.lower() == search_term.lower() |
+            merged_df['name'].str.contains(search_term, case=False, na=False) |
             merged_df['email'].str.contains(search_term, case=False, na=False) |
             merged_df['l2_address'].str.contains(search_term, case=False, na=False)
         ]
