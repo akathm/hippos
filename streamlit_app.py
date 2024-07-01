@@ -95,6 +95,9 @@ def process_cases(results):
     return pd.DataFrame(records)
 
 
+def main():
+
+
 ## LEGACY DATA -------------------------------------------------------------------
 
 def fetch_csv(owner, repo, path, access_token):
@@ -112,131 +115,132 @@ def fetch_csv(owner, repo, path, access_token):
         st.error(f"Failed to fetch the file from {path}: {response.status_code}")
         return None
 
+## QUERY TOOL-----------------------------------------------------------------------
 
-def main():
-    st.title('KYC Database')
-    
-    api_key = st.secrets["persona"]["api_key"]
-    access_token = st.secrets["github"]["access_token"]
-    owner = "akathm"
-    repo = "the-trojans"
+st.title('KYC Database')
 
-    if 'inquiries_data' not in st.session_state:
-        st.session_state.inquiries_data = None
-    if 'cases_data' not in st.session_state:
-        st.session_state.cases_data = None
+api_key = st.secrets["persona"]["api_key"]
+access_token = st.secrets["github"]["access_token"]
+owner = "akathm"
+repo = "the-trojans"
 
-    refresh_button = st.button("Refresh")
+if 'inquiries_data' not in st.session_state:
+    st.session_state.inquiries_data = None
+if 'cases_data' not in st.session_state:
+    st.session_state.cases_data = None
 
-    if refresh_button:
-        inquiries_data = fetch_data(api_key, "https://app.withpersona.com/api/v1/inquiries?refresh=true")
-        cases_data = fetch_data(api_key, "https://app.withpersona.com/api/v1/cases?refresh=true")
+refresh_button = st.button("Refresh")
+
+if refresh_button:
+    inquiries_data = fetch_data(api_key, "https://app.withpersona.com/api/v1/inquiries?refresh=true")
+    cases_data = fetch_data(api_key, "https://app.withpersona.com/api/v1/cases?refresh=true")
+    st.session_state.inquiries_data = inquiries_data
+    st.session_state.cases_data = cases_data
+else:
+    if st.session_state.inquiries_data is None:
+        inquiries_data = fetch_data(api_key, "https://app.withpersona.com/api/v1/inquiries")
         st.session_state.inquiries_data = inquiries_data
+    else:
+        inquiries_data = st.session_state.inquiries_data
+    
+    if st.session_state.cases_data is None:
+        cases_data = fetch_data(api_key, "https://app.withpersona.com/api/v1/cases")
         st.session_state.cases_data = cases_data
     else:
-        if st.session_state.inquiries_data is None:
-            inquiries_data = fetch_data(api_key, "https://app.withpersona.com/api/v1/inquiries")
-            st.session_state.inquiries_data = inquiries_data
-        else:
-            inquiries_data = st.session_state.inquiries_data
-        
-        if st.session_state.cases_data is None:
-            cases_data = fetch_data(api_key, "https://app.withpersona.com/api/v1/cases")
-            st.session_state.cases_data = cases_data
-        else:
-            cases_data = st.session_state.cases_data
+        cases_data = st.session_state.cases_data
 
-    option = st.sidebar.selectbox('Select an Option', ['Grants Round', 'Contribution Path', 'Superchain', 'Vendor'])
-    search_term = st.sidebar.text_input('Enter search term (name, l2_address, or email)')
+option = st.sidebar.selectbox('Select an Option', ['Grants Round', 'Contribution Path', 'Superchain', 'Vendor'])
+search_term = st.sidebar.text_input('Enter search term (name, l2_address, or email)')
 
-    inquiries_df = process_inquiries(inquiries_data)
-    cases_df = process_cases(cases_data)
-    
-    contributors_path = "grants.contributors.csv"
-    projects_path = "grants.projects.csv"
-    persons_path = "legacy.persons.csv"
-    businesses_path = "legacy.businesses.csv"
-    form_path = "legacy.form.csv"
+inquiries_df = process_inquiries(inquiries_data)
+cases_df = process_cases(cases_data)
 
-    contributors_df = fetch_csv(owner, repo, contributors_path, access_token)
-    projects_df = fetch_csv(owner, repo, contributors_path, access_token)
-    persons_df = fetch_csv(owner, repo, persons_path, access_token)
-    businesses_df = fetch_csv(owner, repo, businesses_path, access_token)
-    form_df = fetch_csv(owner, repo, form_path, access_token)
+contributors_path = "grants.contributors.csv"
+projects_path = "grants.projects.csv"
+persons_path = "legacy.persons.csv"
+businesses_path = "legacy.businesses.csv"
+form_path = "legacy.form.csv"
 
-    if persons_df is not None and 'updated_at' in persons_df.columns:
-        try:
-            persons_df['updated_at'] = pd.to_datetime(persons_df['updated_at'], utc=True)
-        except Exception as e:
-            st.error(f"Error converting 'updated_at' to datetime: {e}")
-            st.stop()
+contributors_df = fetch_csv(owner, repo, contributors_path, access_token)
+projects_df = fetch_csv(owner, repo, projects_path, access_token)
+persons_df = fetch_csv(owner, repo, persons_path, access_token)
+businesses_df = fetch_csv(owner, repo, businesses_path, access_token)
+form_df = fetch_csv(owner, repo, form_path, access_token)
 
-    if businesses_df is not None and 'updated_at' in businesses_df.columns:
-        try:
-            businesses_df['updated_at'] = pd.to_datetime(businesses_df['updated_at'], utc=True)
-        except Exception as e:
-            st.error(f"Error converting 'updated_at' to datetime: {e}")
-            st.stop()
+if persons_df is not None and 'updated_at' in persons_df.columns:
+    try:
+        persons_df['updated_at'] = pd.to_datetime(persons_df['updated_at'], utc=True)
+    except Exception as e:
+        st.error(f"Error converting 'updated_at' to datetime: {e}")
+        st.stop()
 
-    if inquiries_df is not None and 'updated_at' in inquiries_df.columns:
-        inquiries_df['updated_at'] = pd.to_datetime(inquiries_df['updated_at'], utc=True)
+if businesses_df is not None and 'updated_at' in businesses_df.columns:
+    try:
+        businesses_df['updated_at'] = pd.to_datetime(businesses_df['updated_at'], utc=True)
+    except Exception as e:
+        st.error(f"Error converting 'updated_at' to datetime: {e}")
+        st.stop()
 
-    if cases_df is not None and 'updated_at' in cases_df.columns:
-        cases_df['updated_at'] = pd.to_datetime(cases_df['updated_at'], utc=True)
-    
-    if persons_df is not None and inquiries_df is not None:
-        current_date_utc = datetime.utcnow().replace(tzinfo=timezone.utc)
-        one_year_ago_utc = current_date_utc - timedelta(days=365)
+if inquiries_df is not None and 'updated_at' in inquiries_df.columns:
+    inquiries_df['updated_at'] = pd.to_datetime(inquiries_df['updated_at'], utc=True)
 
-    if businesses_df is not None and businesses_df is not None:
-        current_date_utc = datetime.utcnow().replace(tzinfo=timezone.utc)
-        one_year_ago_utc = current_date_utc - timedelta(days=365)
+if cases_df is not None and 'updated_at' in cases_df.columns:
+    cases_df['updated_at'] = pd.to_datetime(cases_df['updated_at'], utc=True)
 
-    def display_results(df, columns, message, status_column='status'):
-        if df.empty:
-            st.write("No matching results found.")
-            return
-        st.write(df[columns])
+if persons_df is not None and inquiries_df is not None:
+    current_date_utc = datetime.utcnow().replace(tzinfo=timezone.utc)
+    one_year_ago_utc = current_date_utc - timedelta(days=365)
 
-        most_recent_status = df.loc[df['updated_at'].idxmax(), status_column]
-        st.write(f"### {message.format(status=most_recent_status)}")
+if businesses_df is not None and businesses_df is not None:
+    current_date_utc = datetime.utcnow().replace(tzinfo=timezone.utc)
+    one_year_ago_utc = current_date_utc - timedelta(days=365)
 
-    def merge_addresses(df1, df2, key):
-        return pd.merge(df1, df2, on=key, how='outer')
+def display_results(df, columns, message, status_column='status'):
+    if df.empty:
+        st.write("No matching results found.")
+        return
+    st.write(df[columns])
 
-    def search_and_display(df1, df2, search_term, columns_to_display, message, status_column='status'):
-        merged_df = pd.concat([df1, df2], ignore_index=True)
+    most_recent_status = df.loc[df['updated_at'].idxmax(), status_column]
+    st.write(f"### {message.format(status=most_recent_status)}")
 
-        filtered_df = merged_df[
-            merged_df['name'].str.contains(search_term, case=False, na=False) |
-            merged_df['email'].str.contains(search_term, case=False, na=False) |
-            merged_df['l2_address'].str.contains(search_term, case=False, na=False)
-        ]
-    
-        display_results(filtered_df, columns_to_display, message, status_column)
+def merge_addresses(df1, df2, key):
+    return pd.merge(df1, df2, on=key, how='outer')
 
-    if option in ['Superchain', 'Vendor']:
-        search_and_display(businesses_df, cases_df, search_term, ['name', 'email', 'l2_address', 'updated_at'], 
+def search_and_display(df1, df2, search_term, columns_to_display, message, status_column='status'):
+    merged_df = pd.concat([df1, df2], ignore_index=True)
+
+    filtered_df = merged_df[
+        merged_df['name'].str.contains(search_term, case=False, na=False) |
+        merged_df['email'].str.contains(search_term, case=False, na=False) |
+        merged_df['l2_address'].str.contains(search_term, case=False, na=False)
+    ]
+
+    display_results(filtered_df, columns_to_display, message, status_column)
+
+if option in ['Superchain', 'Vendor']:
+    search_and_display(businesses_df, cases_df, search_term, ['name', 'email', 'l2_address', 'updated_at'], 
                        "This team is {status} for KYB.")
-    elif option == 'Contribution Path':
-        if 'avatar' not in persons_df.columns:
-            persons_df['avatar'] = ''
-        if search_term:
-            search_and_display(persons_df, inquiries_df, search_term, ['avatar', 'email', 'l2_address', 'updated_at'], 
-                               "This contributor is {status} for KYC.")
-    elif option == 'Grants Round':
-        form_df['grant_id'] = form_df['grant_id'].astype(str)
-        projects_df['grant_id'] = projects_df['grant_id'].astype(str)
-        merged_df = pd.merge(form_df, projects_df, on=['grant_id', 'l2_address', 'email'], how='left')
-    
-        filtered_df = merged_df[
-            merged_df['project_name'].str.contains(search_term, case=False, na=False) |
-            merged_df['email'].str.contains(search_term, case=False, na=False) |
-            merged_df['l2_address'].str.contains(search_term, case=False, na=False)
-        ]
-    
-        display_results(filtered_df, ['project_name', 'email', 'l2_address', 'round_id', 'grant_id'], 
+elif option == 'Contribution Path':
+    if 'avatar' not in persons_df.columns:
+        persons_df['avatar'] = ''
+    if search_term:
+        search_and_display(persons_df, inquiries_df, search_term, ['avatar', 'email', 'l2_address', 'updated_at'], 
+                           "This contributor is {status} for KYC.")
+elif option == 'Grants Round':
+    form_df['grant_id'] = form_df['grant_id'].astype(str)
+    projects_df['grant_id'] = projects_df['grant_id'].astype(str)
+    merged_df = pd.merge(form_df, projects_df, on=['grant_id', 'l2_address', 'email'], how='left')
+
+    filtered_df = merged_df[
+        merged_df['project_name'].str.contains(search_term, case=False, na=False) |
+        merged_df['email'].str.contains(search_term, case=False, na=False) |
+        merged_df['l2_address'].str.contains(search_term, case=False, na=False)
+    ]
+
+    display_results(filtered_df, ['project_name', 'email', 'l2_address', 'round_id', 'grant_id'], 
                     "This project is {status} for KYC.")
+
 
 
 ## Contributors-------------------------------------------------------
@@ -277,7 +281,7 @@ def main():
     }
 
     response = requests.get(url, headers=headers)
-
+    
     if response.status_code == 200:
         csv_content = response.content.decode('utf-8')
         df = pd.read_csv(StringIO(csv_content))
