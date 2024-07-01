@@ -222,8 +222,8 @@ def main():
         if 'avatar' not in persons_df.columns:
             persons_df['avatar'] = ''
         if search_term:
-            search_and_display(persons_df, inquiries_df, search_term, "This contributor is {status} for KYC.", ['avatar', 'email', 'l2_address', 'updated_at', 'status'] 
-                               )
+            search_and_display(persons_df, inquiries_df, search_term, ['avatar', 'email', 'l2_address', 'updated_at', 'status'], 
+                               "This contributor is {status} for KYC.")
     elif option == 'Grants Round':
         form_df['grant_id'] = form_df['grant_id'].astype(str)
         projects_df['grant_id'] = projects_df['grant_id'].astype(str)
