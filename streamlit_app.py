@@ -100,20 +100,20 @@ def main():
 
 ## LEGACY DATA -------------------------------------------------------------------
 
-def fetch_csv(owner, repo, path, access_token):
-    url = f"https://api.github.com/repos/{owner}/{repo}/contents/{path}"
-    headers = {
-        "Authorization": f"token {access_token}",
-        "Accept": "application/vnd.github.v3.raw"
-    }
-    response = requests.get(url, headers=headers)
-    if response.status_code == 200:
-        csv_content = response.content.decode('utf-8')
-        df = pd.read_csv(StringIO(csv_content))
-        return df
-    else:
-        st.error(f"Failed to fetch the file from {path}: {response.status_code}")
-        return None
+    def fetch_csv(owner, repo, path, access_token):
+        url = f"https://api.github.com/repos/{owner}/{repo}/contents/{path}"
+        headers = {
+            "Authorization": f"token {access_token}",
+            "Accept": "application/vnd.github.v3.raw"
+        }
+        response = requests.get(url, headers=headers)
+        if response.status_code == 200:
+            csv_content = response.content.decode('utf-8')
+            df = pd.read_csv(StringIO(csv_content))
+            return df
+        else:
+            st.error(f"Failed to fetch the file from {path}: {response.status_code}")
+            return None
 
 ## QUERY TOOL-----------------------------------------------------------------------
 
