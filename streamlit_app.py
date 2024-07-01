@@ -236,18 +236,18 @@ def main():
             search_and_display(persons_df, inquiries_df, search_term, ['avatar', 'email', 'l2_address', 'updated_at'], 
                                "This contributor is {status} for KYC.")
     elif option == 'Grants Round':
-        merged_df = pd.merge(form_df, projects_df, on=['l2_address', 'email'], how='left')
-
+        form_df['grant_id'] = form_df['grant_id'].astype(str)
+        projects_df['grant_id'] = projects_df['grant_id'].astype(str)
+        merged_df = pd.merge(form_df, projects_df, on=['grant_id', 'l2_address', 'email'], how='left')
+    
         filtered_df = merged_df[
             merged_df['project_name'].str.contains(search_term, case=False, na=False) |
             merged_df['email'].str.contains(search_term, case=False, na=False) |
             merged_df['l2_address'].str.contains(search_term, case=False, na=False)
         ]
-
-
-        display_results(filtered_df, ['project_name', 'email', 'l2_address', 'round_id', 'grant_id'],
+    
+        display_results(filtered_df, ['project_name', 'email', 'l2_address', 'round_id', 'grant_id'], 
                         "This project is {status} for KYC.")
-
 
 
 ## Contributors-------------------------------------------------------
