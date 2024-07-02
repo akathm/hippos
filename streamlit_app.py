@@ -245,14 +245,11 @@ def main():
                 merged_all['email'].str.contains(search_term, case=False, na=False) |
                 merged_all['l2_address'].str.contains(search_term, case=False, na=False)
             ]
-
-        display_results(filtered_df, ['project_name', 'email', 'l2_address', 'round_id', 'grant_id', 'status'], 
-                    "This project is {status} for KYC.")
         else:
             filtered_df = merged_all
 
-            display_results(filtered_df, ['project_name', 'email', 'l2_address', 'round_id', 'grant_id', 'status'], 
-                        "This project is {status} for KYC.")
+        display_results(filtered_df, ['project_name', 'email', 'l2_address', 'round_id', 'grant_id', 'status'], 
+                    "This project is {status} for KYC.")
 
 
 ## Contributors-------------------------------------------------------
