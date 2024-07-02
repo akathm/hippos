@@ -165,10 +165,18 @@ def main():
     form_df = fetch_csv(owner, repo, form_path, access_token)
 
     if persons_df is not None and 'updated_at' in persons_df.columns:
-        persons_df['updated_at'] = pd.to_datetime(persons_df['updated_at'], utc=True)
+        try:
+            persons_df['updated_at'] = pd.to_datetime(persons_df['updated_at'], utc=True)
+        except Exception as e:
+            st.error(f"Error converting 'updated_at' to datetime: {e}")
+            st.stop()
 
     if businesses_df is not None and 'updated_at' in businesses_df.columns:
-        businesses_df['updated_at'] = pd.to_datetime(businesses_df['updated_at'], utc=True)
+        try:
+            businesses_df['updated_at'] = pd.to_datetime(businesses_df['updated_at'], utc=True)
+        except Exception as e:
+            st.error(f"Error converting 'updated_at' to datetime: {e}")
+            st.stop()
 
     if inquiries_df is not None and 'updated_at' in inquiries_df.columns:
         inquiries_df['updated_at'] = pd.to_datetime(inquiries_df['updated_at'], utc=True)
@@ -237,12 +245,9 @@ def main():
                 merged_all['email'].str.contains(search_term, case=False, na=False) |
                 merged_all['l2_address'].str.contains(search_term, case=False, na=False)
             ]
-        else:
-            filtered_df = merged_all
 
         display_results(filtered_df, ['project_name', 'email', 'l2_address', 'round_id', 'grant_id', 'status'], 
                     "This project is {status} for KYC.")
-
 
 ## Contributors-------------------------------------------------------
 
