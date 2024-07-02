@@ -251,8 +251,8 @@ def main():
         else:
             filtered_df = merged_all
 
-        display_results(filtered_df, ['project_name', 'email', 'l2_address', 'round_id', 'grant_id', 'status'], 
-                    "This project is {status} for KYC.")
+            display_results(filtered_df, ['project_name', 'email', 'l2_address', 'round_id', 'grant_id', 'status'], 
+                        "This project is {status} for KYC.")
 
 
 ## Contributors-------------------------------------------------------
