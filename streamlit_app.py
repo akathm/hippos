@@ -227,10 +227,17 @@ def main():
     elif option == 'Grants Round':
         form_df['grant_id'] = form_df['grant_id'].astype(str)
         projects_df['grant_id'] = projects_df['grant_id'].astype(str)
-        merged_email = pd.merge(form_df, projects_df, on='email', how='outer')
-        merged_l2 = pd.merge(form_df, projects_df, on='l2_address', how='outer')
+        
+        merged_email = pd.merge(form_df, projects_df, on='email', how='outer', indicator=True)
+        merged_l2 = pd.merge(form_df, projects_df, on='l2_address', how='outer', indicator=True)
         merged_all = pd.concat([merged_email, merged_l2], ignore_index=True).drop_duplicates()
 
+
+        required_columns = ['project_name', 'email', 'l2_address', 'round_id', 'grant_id', 'status']
+        for col in required_columns:
+            if col not in merged_all.columns:
+                merged_all[col] = ''
+        
         if search_term:
             filtered_df = merged_all[
                 merged_all['project_name'].str.contains(search_term, case=False, na=False) |
