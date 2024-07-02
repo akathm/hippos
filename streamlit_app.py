@@ -228,10 +228,11 @@ def main():
         form_df['grant_id'] = form_df['grant_id'].astype(str)
         projects_df['grant_id'] = projects_df['grant_id'].astype(str)
         
-        merged_email = pd.merge(form_df, projects_df, on='email', how='outer', indicator=True)
-        merged_l2 = pd.merge(form_df, projects_df, on='l2_address', how='outer', indicator=True)
+        merged_email = pd.merge(form_df, projects_df, on='email', how='outer', indicator=True, suffixes=('_form', '_proj'))
+        merged_l2 = pd.merge(form_df, projects_df, on='l2_address', how='outer', indicator=True, suffixes=('_form', '_proj'))
         merged_all = pd.concat([merged_email, merged_l2], ignore_index=True).drop_duplicates()
-
+        merged_all['l2_address'] = merged_all['l2_address_form'].combine_first(merged_all['l2_address_proj'])
+        merged_all.drop(columns=['l2_address_form', 'l2_address_proj'], inplace=True)
 
         required_columns = ['project_name', 'email', 'l2_address', 'round_id', 'grant_id', 'status']
         for col in required_columns:
