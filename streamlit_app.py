@@ -227,14 +227,17 @@ def main():
     elif option == 'Grants Round':
         form_df['grant_id'] = form_df['grant_id'].astype(str)
         projects_df['grant_id'] = projects_df['grant_id'].astype(str)
-        merged_df = pd.merge(form_df, projects_df, on=['grant_id', 'l2_address', 'email'], how='left')
-    
-        filtered_df = merged_df[
-            merged_df['project_name'].str.contains(search_term, case=False, na=False) |
-            merged_df['email'].str.contains(search_term, case=False, na=False) |
-            merged_df['l2_address'].str.contains(search_term, case=False, na=False)
-        ]
-    
+        merged_email = pd.merge(form_df, projects_df, on='email', how='outer')
+        merged_l2 = pd.merge(form_df, projects_df, on='l2_address', how='outer')
+        merged_all = pd.concat([merged_email, merged_l2], ignore_index=True).drop_duplicates()
+
+        if search_term:
+            filtered_df = merged_all[
+                merged_all['project_name'].str.contains(search_term, case=False, na=False) |
+                merged_all['email'].str.contains(search_term, case=False, na=False) |
+                merged_all['l2_address'].str.contains(search_term, case=False, na=False)
+            ]
+
         display_results(filtered_df, ['project_name', 'email', 'l2_address', 'round_id', 'grant_id', 'status'], 
                     "This project is {status} for KYC.")
 
