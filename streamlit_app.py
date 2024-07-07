@@ -231,15 +231,19 @@ def main():
     elif option == 'Grants Round':
         form_df['grant_id'] = form_df['grant_id'].astype(str)
         projects_df['grant_id'] = projects_df['grant_id'].astype(str)
-    
-        merged_email = pd.merge(form_df, projects_df, on='email', how='outer', indicator=True, suffixes=('_form', '_proj'))
-        merged_l2 = pd.merge(form_df, projects_df, on='l2_address', how='outer', indicator=True, suffixes=('_form', '_proj'))
+        
+        ##merged_email = pd.merge(form_df, projects_df, on='email', how='outer', indicator=True, suffixes=('_form', '_proj'))
+        ##merged_l2 = pd.merge(form_df, projects_df, on='l2_address', how='outer', indicator=True, suffixes=('_form', '_proj'))
+        ##merged_all = pd.concat([merged_email, merged_l2], ignore_index=True).drop_duplicates()
+        merged_email = pd.merge(form_df, projects_df, on='email', how='outer', suffixes=('_form', '_proj'))
+        merged_l2 = pd.merge(form_df, projects_df, on='l2_address', how='outer', suffixes=('_form', '_proj'))
         merged_all = pd.concat([merged_email, merged_l2], ignore_index=True).drop_duplicates()
-    
+
         merged_all['l2_address'] = merged_all['l2_address_form'].combine_first(merged_all['l2_address_proj'])
         merged_all.drop(columns=['l2_address_form', 'l2_address_proj'], inplace=True)
-        merged_all['status'] = pd.to_numeric(merged_all['status'], errors='coerce')
-        merged_all['status'] = merged_all['status_form'].combine_first(merged_all['status_proj'])
+        merged_all['status'] = merged_all['status_form']
+        ##merged_all['status'] = pd.to_numeric(merged_all['status'], errors='coerce')
+        ##merged_all['status'] = merged_all['status_form'].combine_first(merged_all['status_proj'])
     
         required_columns = ['project_name', 'email', 'l2_address', 'round_id', 'grant_id', 'status']
         for col in required_columns:
