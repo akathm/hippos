@@ -244,6 +244,8 @@ def main():
         for col in required_columns:
             if col not in merged_all.columns:
                 merged_all[col] = ''
+
+        merged_all = merged_all[~(merged_all['email'].isnull() & merged_all['l2_address'].isnull())]
     
         if search_term:
             filtered_df = merged_all[
@@ -254,7 +256,7 @@ def main():
     
         else:
             filtered_df = pd.DataFrame()
-            st.write('**Use the search tool on the left hand side to input an L2 address, project name, or admin email** 💬')
+            st.write('*Use the search tool on the left hand side to input an L2 address, project name, or admin email* 💬')
             
 
         display_results(filtered_df, ['project_name', 'email', 'l2_address', 'round_id', 'grant_id', 'status'], 
