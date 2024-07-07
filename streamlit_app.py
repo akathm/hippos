@@ -239,6 +239,7 @@ def main():
         merged_all['l2_address'] = merged_all['l2_address_form'].combine_first(merged_all['l2_address_proj'])
         merged_all.drop(columns=['l2_address_form', 'l2_address_proj'], inplace=True)
         merged_all['status'] = pd.to_numeric(merged_all['status'], errors='coerce')
+        merged_all['status'] = merged_all['status_form']
     
         required_columns = ['project_name', 'email', 'l2_address', 'round_id', 'grant_id', 'status']
         for col in required_columns:
