@@ -264,16 +264,24 @@ def main():
 
     st.header('______________________________________')
     st.header('Individual Contributors')
-        
+
     all_persons_df = pd.concat([persons_df, inquiries_df], ignore_index=True)
     all_persons_df['status'] = all_persons_df.sort_values('updated_at').groupby('email')['status'].transform('last')
-
+    
     all_persons_df.loc[(all_persons_df['status'] == 'cleared') & (all_persons_df['updated_at'] < one_year_ago_utc), 'status'] = 'expired'
-
-    merged_df = contributors_df.merge(all_persons_df[['email', 'status']], on='email', how='left')
-    merged_df['status'].fillna('not started', inplace=True)
+    merged_df['status'] = merged_df['status'].fillna('not started')
     merged_df = merged_df[~(merged_df['email'].isnull() & merged_df['contributor_id'].isnull())]
     merged_df.drop_duplicates(subset=['email', 'round_id', 'op_amt'], inplace=True)
+
+##    all_persons_df = pd.concat([persons_df, inquiries_df], ignore_index=True)
+##    all_persons_df['status'] = all_persons_df.sort_values('updated_at').groupby('email')['status'].transform('last')
+
+##    all_persons_df.loc[(all_persons_df['status'] == 'cleared') & (all_persons_df['updated_at'] < one_year_ago_utc), 'status'] = 'expired'
+
+##    merged_df = contributors_df.merge(all_persons_df[['email', 'status']], on='email', how='left')
+##    merged_df['status'].fillna('not started', inplace=True)
+##    merged_df = merged_df[~(merged_df['email'].isnull() & merged_df['contributor_id'].isnull())]
+##    merged_df.drop_duplicates(subset=['email', 'round_id', 'op_amt'], inplace=True)
 
     projects_list = ['Ambassadors', 'NumbaNERDs', 'SupportNERDs', 'Translators', 'Badgeholders', 'WLTA', 'WLTA Judge']
     projects_selection = st.multiselect('Select the Contributor Path', projects_list + ['Other'], ['Ambassadors', 'NumbaNERDs', 'SupportNERDs', 'Translators', 'Badgeholders', 'WLTA', 'WLTA Judge', 'Other'])
