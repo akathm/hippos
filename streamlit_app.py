@@ -271,6 +271,7 @@ def main():
     all_persons_df['status'] = all_persons_df.sort_values('updated_at').groupby('email')['status'].transform('last')
     
     all_persons_df.loc[(all_persons_df['status'] == 'cleared') & (all_persons_df['updated_at'] < one_year_ago_utc), 'status'] = 'expired'
+    merged_df = contributors_df.merge(all_persons_df[['email', 'status']], on='email', how='left')
     merged_df['status'] = merged_df['status'].fillna('not started')
     merged_df = merged_df[~(merged_df['email'].isnull() & merged_df['contributor_id'].isnull())]
     merged_df.drop_duplicates(subset=['email', 'round_id', 'op_amt'], inplace=True)
