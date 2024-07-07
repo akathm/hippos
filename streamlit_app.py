@@ -163,6 +163,8 @@ def main():
     persons_df = fetch_csv(owner, repo, persons_path, access_token)
     businesses_df = fetch_csv(owner, repo, businesses_path, access_token)
     form_df = fetch_csv(owner, repo, form_path, access_token)
+    form_df['updated_at'] = pd.to_datetime(df['updated_at'])
+    form_df['updated_at'] = df['updated_at'].dt.tz_localize('UTC')
 
     if persons_df is not None and 'updated_at' in persons_df.columns:
         try:
