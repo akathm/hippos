@@ -233,9 +233,13 @@ def main():
         merged_email = pd.merge(form_df, projects_df, on='email', how='outer', indicator=True, suffixes=('_form', '_proj'))
         merged_l2 = pd.merge(form_df, projects_df, on='l2_address', how='outer', indicator=True, suffixes=('_form', '_proj'))
         merged_all = pd.concat([merged_email, merged_l2], ignore_index=True).drop_duplicates()
+    
         merged_all['l2_address'] = merged_all['l2_address_form'].combine_first(merged_all['l2_address_proj'])
         merged_all.drop(columns=['l2_address_form', 'l2_address_proj'], inplace=True)
-
+    
+        # Convert necessary columns to numeric and handle errors
+        merged_all['status'] = pd.to_numeric(merged_all['status'], errors='coerce')
+    
         required_columns = ['project_name', 'email', 'l2_address', 'round_id', 'grant_id', 'status']
         for col in required_columns:
             if col not in merged_all.columns:
@@ -247,10 +251,10 @@ def main():
                 merged_all['email'].str.contains(search_term, case=False, na=False) |
                 merged_all['l2_address'].str.contains(search_term, case=False, na=False)
             ]
-
+    
         else:
             filtered_df = merged_all
-
+    
         display_results(filtered_df, ['project_name', 'email', 'l2_address', 'round_id', 'grant_id', 'status'], 
                     "This project is {status} for KYC.")
 
