@@ -115,7 +115,7 @@ def fetch_csv(owner, repo, path, access_token):
 
 def main():
     st.title('KYC Database')
-    
+
     api_key = st.secrets["persona"]["api_key"]
     access_token = st.secrets["github"]["access_token"]
     owner = "akathm"
@@ -139,7 +139,7 @@ def main():
             st.session_state.inquiries_data = inquiries_data
         else:
             inquiries_data = st.session_state.inquiries_data
-        
+
         if st.session_state.cases_data is None:
             cases_data = fetch_data(api_key, "https://app.withpersona.com/api/v1/cases")
             st.session_state.cases_data = cases_data
@@ -151,7 +151,7 @@ def main():
 
     inquiries_df = process_inquiries(inquiries_data)
     cases_df = process_cases(cases_data)
-    
+
     contributors_path = "grants.contributors.csv"
     projects_path = "grants.projects.csv"
     persons_path = "legacy.persons.csv"
@@ -159,7 +159,7 @@ def main():
     form_path = "legacy.form.csv"
 
     contributors_df = fetch_csv(owner, repo, contributors_path, access_token)
-    projects_df = fetch_csv(owner, repo, contributors_path, access_token)
+    projects_df = fetch_csv(owner, repo, projects_path, access_token)
     persons_df = fetch_csv(owner, repo, persons_path, access_token)
     businesses_df = fetch_csv(owner, repo, businesses_path, access_token)
     form_df = fetch_csv(owner, repo, form_path, access_token)
@@ -183,7 +183,7 @@ def main():
 
     if cases_df is not None and 'updated_at' in cases_df.columns:
         cases_df['updated_at'] = pd.to_datetime(cases_df['updated_at'], utc=True)
-    
+
     if persons_df is not None and inquiries_df is not None:
         current_date_utc = datetime.utcnow().replace(tzinfo=timezone.utc)
         one_year_ago_utc = current_date_utc - timedelta(days=365)
@@ -198,10 +198,9 @@ def main():
             return
         st.write(df[columns])
 
-        most_recent_status = merged_df.loc[merged_df['updated_at'].idxmax(), 'status']
+        most_recent_status = df.loc[df['updated_at'].idxmax(), 'status']
         st.write(f"### {message.format(status=most_recent_status)}")
 
-    
     def merge_addresses(df1, df2, key):
         return pd.merge(df1, df2, on=key, how='outer')
 
@@ -215,7 +214,7 @@ def main():
             merged_df['email'].str.contains(search_term, case=False, na=False) |
             merged_df['l2_address'].str.contains(search_term, case=False, na=False)
         ]
-    
+
         display_results(filtered_df, columns_to_display, message, status_column)
 
     if option in ['Superchain', 'Vendor']:
@@ -226,11 +225,11 @@ def main():
             persons_df['avatar'] = ''
         if search_term:
             search_and_display(persons_df, inquiries_df, search_term, ['avatar', 'email', 'l2_address', 'updated_at', 'status'], 
-                               "This contributor is {status} for KYC.")
+                       "This contributor is {status} for KYC.")
     elif option == 'Grants Round':
         form_df['grant_id'] = form_df['grant_id'].astype(str)
         projects_df['grant_id'] = projects_df['grant_id'].astype(str)
-        
+    
         merged_email = pd.merge(form_df, projects_df, on='email', how='outer', indicator=True, suffixes=('_form', '_proj'))
         merged_l2 = pd.merge(form_df, projects_df, on='l2_address', how='outer', indicator=True, suffixes=('_form', '_proj'))
         merged_all = pd.concat([merged_email, merged_l2], ignore_index=True).drop_duplicates()
@@ -241,7 +240,7 @@ def main():
         for col in required_columns:
             if col not in merged_all.columns:
                 merged_all[col] = ''
-        
+    
         if search_term:
             filtered_df = merged_all[
                 merged_all['project_name'].str.contains(search_term, case=False, na=False) |
@@ -254,6 +253,7 @@ def main():
 
         display_results(filtered_df, ['project_name', 'email', 'l2_address', 'round_id', 'grant_id', 'status'], 
                     "This project is {status} for KYC.")
+
 
 
 ## Contributors-------------------------------------------------------
