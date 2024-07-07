@@ -238,8 +238,6 @@ def main():
     
         merged_all['l2_address'] = merged_all['l2_address_form'].combine_first(merged_all['l2_address_proj'])
         merged_all.drop(columns=['l2_address_form', 'l2_address_proj'], inplace=True)
-    
-        # Convert necessary columns to numeric and handle errors
         merged_all['status'] = pd.to_numeric(merged_all['status'], errors='coerce')
     
         required_columns = ['project_name', 'email', 'l2_address', 'round_id', 'grant_id', 'status']
@@ -255,8 +253,8 @@ def main():
             ]
     
         else:
-            filtered_df = merged_all
-    
+            st.write('Use the search tool on the left hand side to input an L2 address, project name, or admin email 💬')
+            
         display_results(filtered_df, ['project_name', 'email', 'l2_address', 'round_id', 'grant_id', 'status'], 
                     "This project is {status} for KYC.")
 
