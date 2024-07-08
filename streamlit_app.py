@@ -203,9 +203,9 @@ def main():
             st.write("No matching results found.")
             return
         st.write(df[columns])
-        if 'updated_at' in df.columns and not df.empty:
-            most_recent_status = df.loc[df['updated_at'].idxmax(), 'status']
-            st.write(f"### {message.format(status=most_recent_status)}")
+
+        most_recent_status = df.loc[df['updated_at'].idxmax(), status_column]
+        st.write(f"### {message.format(status=most_recent_status)}")
 
     def merge_addresses(df1, df2, key):
         return pd.merge(df1, df2, on=key, how='outer')
