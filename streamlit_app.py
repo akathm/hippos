@@ -190,7 +190,11 @@ def main():
         current_date_utc = datetime.utcnow().replace(tzinfo=timezone.utc)
         one_year_ago_utc = current_date_utc - timedelta(days=365)
 
-    if businesses_df is not None and businesses_df is not None:
+    if businesses_df is not None and cases_df is not None:
+        current_date_utc = datetime.utcnow().replace(tzinfo=timezone.utc)
+        one_year_ago_utc = current_date_utc - timedelta(days=365)
+
+    if form_df is not None ## and typeform_df is not None:
         current_date_utc = datetime.utcnow().replace(tzinfo=timezone.utc)
         one_year_ago_utc = current_date_utc - timedelta(days=365)
 
