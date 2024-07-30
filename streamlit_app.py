@@ -69,7 +69,6 @@ def process_inquiries(results):
         })
 
     return pd.DataFrame(records)
-    st.write(process_inquiries(inquiries_data))
 
 
 def process_cases(results):
@@ -302,6 +301,11 @@ def main():
         filtered_df = merged_df[merged_df['project_name'].isin(projects_selection)] if projects_selection else merged_df
 
     st.write(filtered_df)
+
+    st.write(inquiries_df.head())
+    st.write(all_persons_df.head())
+    st.write(merged_df.head())
+
 
         
 ## Grants Rounds--------------------------------------------
