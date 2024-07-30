@@ -69,6 +69,7 @@ def process_inquiries(results):
         })
 
     return pd.DataFrame(records)
+    st.write(process_inquiries(inquiries_data))
 
 
 def process_cases(results):
