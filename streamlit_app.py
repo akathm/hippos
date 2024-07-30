@@ -51,7 +51,7 @@ def process_inquiries(results):
         name_middle = attributes.get('name-middle', '') or ''
         name_last = attributes.get('name-last', '') or ''
         name = f"{name_first} {name_middle} {name_last}".strip()
-        email = attributes.get('email', '') or ''
+        email = attributes.get('email-address', '') or ''
         updated_at = attributes.get('updated-at')
         status = attributes.get('status')
         l2_address = attributes.get('fields', {}).get('l-2-address', {}).get('value', '')
@@ -69,6 +69,7 @@ def process_inquiries(results):
         })
 
     return pd.DataFrame(records)
+
 
 def process_cases(results):
     records = []
@@ -282,11 +283,10 @@ def main():
 
     all_persons_df.loc[(all_persons_df['status'] == 'cleared') & (all_persons_df['updated_at'] < one_year_ago_utc), 'status'] = 'expired'
 
-    merged_df = contributors_df.merge(all_persons_df[['email', 'l2_address', 'status']], on='email', how='left')
+    merged_df = contributors_df.merge(all_persons_df[['email', 'status', 'l2_address']], on='email', how='left')
+    merged_df['status'] = merged_df['status'].fillna('not started')
     merged_df['l2_address'] = merged_df['l2_address_x'].combine_first(merged_df['l2_address_y'])
     merged_df.drop(columns=['l2_address_x', 'l2_address_y'], inplace=True)
-
-    merged_df['status'] = merged_df['status'].fillna('not started')
     merged_df = merged_df[~(merged_df['email'].isnull() & merged_df['contributor_id'].isnull())]
     merged_df.drop_duplicates(subset=['email', 'round_id', 'op_amt'], inplace=True)
 
