@@ -305,6 +305,9 @@ def main():
 
     st.write(filtered_df)
 
+    st.write("Inquiries DF Columns and Dtypes", inquiries_df.dtypes)
+    st.write("Contributors DF Columns and Dtypes", contributors_df.dtypes)
+
     st.write(inquiries_df.head())
     st.write(all_persons_df.head())
     st.write(merged_df.head())
