@@ -303,25 +303,18 @@ def main():
     else:
         filtered_df = merged_df[merged_df['project_name'].isin(projects_selection)] if projects_selection else merged_df
 
-    st.write(filtered_df)
 
     contributors_df['email'] = contributors_df['email'].str.strip().str.lower()
     inquiries_df['email'] = inquiries_df['email'].str.strip().str.lower()
     merged_df = contributors_df.merge(inquiries_df[['email', 'l2_address']], on='email', how='left')
-    st.write("Merged DF Preview", merged_df)
-
-    st.write("Before Coalescing", merged_df)
 
     merged_df['l2_address'] = merged_df['l2_address_x'].fillna(merged_df['l2_address_y'])
 
     merged_df.drop(columns=['l2_address_x', 'l2_address_y'], inplace=True)
     merged_df['l2_address'].replace(np.nan, '', inplace=True)
 
-    st.write("After Coalescing", merged_df)
-    
-    st.write(inquiries_df)
-    st.write(all_persons_df)
     st.write(merged_df)
+
 
 
         
