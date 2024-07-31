@@ -306,7 +306,7 @@ def main():
     merged_df['status'] = merged_df['status'].fillna('not started')
     merged_df['l2_address'] = merged_df.apply(lambda row: row['l2_address_x'] if pd.notna(row['l2_address_x']) else row['l2_address_y'], axis=1)
     merged_df = merged_df.drop(columns=['l2_address_x', 'l2_address_y'])
-    merged_df = merged_df[~(merged_df['email'].isnull() & merged_df['contributor_id'].isnull())]
+    merged_df = merged_df[~(merged_df['email'].isnull() & merged_df['avatar'].isnull())]
     merged_df.drop_duplicates(subset=['email', 'round_id', 'op_amt'], inplace=True)
 
     projects_list = ['Ambassadors', 'NumbaNERDs', 'SupportNERDs', 'Translators', 'Badgeholders', 'WLTA', 'WLTA Judge']
