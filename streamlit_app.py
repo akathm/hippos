@@ -84,6 +84,7 @@ def process_cases(results):
         fields = attributes.get('fields', {})
         business_name = fields.get('business-name', {}).get('value', '')
         updated_at = attributes.get('updated-at')
+        l2_address = fields.get('l-2-address', {}).get('value', '')
 
         if l2_address and l2_address.lower().strip().startswith('0x'):
             l2_address = l2_address.lower().strip()
