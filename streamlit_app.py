@@ -278,12 +278,15 @@ def main():
     st.header('______________________________________')
     st.header('Individual Contributors')
 
+    contributors_report_df = contributors_df.copy()
+    contributors_report_df['l2_address'].replace('', np.nan, inplace=True)
+    
     all_persons_df = pd.concat([persons_df, inquiries_df], ignore_index=True)
     all_persons_df['status'] = all_persons_df.sort_values('updated_at').groupby('email')['status'].transform('last')
 
     all_persons_df.loc[(all_persons_df['status'] == 'cleared') & (all_persons_df['updated_at'] < one_year_ago_utc), 'status'] = 'expired'
 
-    merged_df = contributors_df.merge(all_persons_df[['email', 'status', 'l2_address']], on='email', how='left')
+    merged_df = contributors_report_df.merge(all_persons_df[['email', 'status', 'l2_address']], on='email', how='left')
     merged_df['status'] = merged_df['status'].fillna('not started')
     merged_df['l2_address'] = merged_df['l2_address_x'].combine_first(merged_df['l2_address_y'])
     merged_df.drop(columns=['l2_address_x', 'l2_address_y'], inplace=True)
