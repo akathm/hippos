@@ -151,7 +151,10 @@ def main():
     search_term = st.sidebar.text_input('Enter search term (name, l2_address, or email)')
 
     inquiries_df = process_inquiries(inquiries_data)
+    inquiries_df['email'] = inquiries_df['email'].str.strip().str.lower()
+
     cases_df = process_cases(cases_data)
+    cases_df['email'] = cases_df['email'].str.strip().str.lower()
 
     contributors_path = "grants.contributors.csv"
     projects_path = "grants.projects.csv"
@@ -160,10 +163,19 @@ def main():
     form_path = "legacy.form.csv"
 
     contributors_df = fetch_csv(owner, repo, contributors_path, access_token)
+    contributors_df['email'] = contributors_df['email'].str.strip().str.lower()
+    
     projects_df = fetch_csv(owner, repo, projects_path, access_token)
+    projects_df['email'] = projects_df['email'].str.strip().str.lower()
+    
     persons_df = fetch_csv(owner, repo, persons_path, access_token)
+    persons_df['email'] = persons_df['email'].str.strip().str.lower()
+    
     businesses_df = fetch_csv(owner, repo, businesses_path, access_token)
+    businesses_df['email'] = businesses_df['email'].str.strip().str.lower()
+    
     form_df = fetch_csv(owner, repo, form_path, access_token)
+    form_df['email'] = form_df['email'].str.strip().str.lower()
     form_df['updated_at'] = pd.to_datetime(form_df['updated_at'])
     form_df['updated_at'] = form_df['updated_at'].dt.tz_localize('UTC')
 
@@ -287,9 +299,10 @@ def main():
     all_persons_df.loc[(all_persons_df['status'] == 'cleared') & (all_persons_df['updated_at'] < one_year_ago_utc), 'status'] = 'expired'
 
     merged_df = contributors_report_df.merge(all_persons_df[['email', 'status', 'l2_address']], on='email', how='left')
-    merged_df['status'] = merged_df['status'].fillna('not started')
-    merged_df['l2_address'] = merged_df['l2_address_x'].combine_first(merged_df['l2_address_y'])
+    merged_df['l2_address'] = merged_df['l2_address_x'].fillna(merged_df['l2_address_y'])
     merged_df.drop(columns=['l2_address_x', 'l2_address_y'], inplace=True)
+    merged_df['l2_address'].replace(np.nan, '', inplace=True)
+    merged_df['status'] = merged_df['status'].fillna('not started')
     merged_df = merged_df[~(merged_df['email'].isnull() & merged_df['contributor_id'].isnull())]
     merged_df.drop_duplicates(subset=['email', 'round_id', 'op_amt'], inplace=True)
 
@@ -304,16 +317,7 @@ def main():
         filtered_df = merged_df[merged_df['project_name'].isin(projects_selection)] if projects_selection else merged_df
 
 
-    contributors_df['email'] = contributors_df['email'].str.strip().str.lower()
-    inquiries_df['email'] = inquiries_df['email'].str.strip().str.lower()
-    merged_df = contributors_df.merge(inquiries_df[['email', 'l2_address']], on='email', how='left')
-
-    merged_df['l2_address'] = merged_df['l2_address_x'].fillna(merged_df['l2_address_y'])
-
-    merged_df.drop(columns=['l2_address_x', 'l2_address_y'], inplace=True)
-    merged_df['l2_address'].replace(np.nan, '', inplace=True)
-
-    st.write(merged_df)
+    st.write(filtered_df)
 
 
 
