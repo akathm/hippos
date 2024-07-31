@@ -294,22 +294,23 @@ def main():
 ##    merged_df['status'].fillna('not started', inplace=True)
 ##    merged_df = merged_df[~(merged_df['email'].isnull() & merged_df['contributor_id'].isnull())]
 ##    merged_df.drop_duplicates(subset=['email', 'round_id', 'op_amt'], inplace=True)
-    
+
     st.header('______________________________________')
     st.header('Individual Contributors')
 
     all_persons_df = pd.concat([persons_df, inquiries_df], ignore_index=True)
     all_persons_df['status'] = all_persons_df.sort_values('updated_at').groupby('email')['status'].transform('last')
-    
     all_persons_df.loc[(all_persons_df['status'] == 'cleared') & (all_persons_df['updated_at'] < one_year_ago_utc), 'status'] = 'expired'
-    merged_df = contributors_df.merge(all_persons_df[['email', 'status']], on='email', how='left')
+
+    merged_df = contributors_df.merge(all_persons_df[['email', 'status', 'l2_address']], on='email', how='left')
     merged_df['status'] = merged_df['status'].fillna('not started')
-    merged_df['l2_address'] = merged_df['l2_address'].combine_first(contributors_df['l2_address'])
+    merged_df['l2_address'] = merged_df.apply(lambda row: row['l2_address_x'] if pd.notna(row['l2_address_x']) else row['l2_address_y'], axis=1)
+    merged_df = merged_df.drop(columns=['l2_address_x', 'l2_address_y'])
     merged_df = merged_df[~(merged_df['email'].isnull() & merged_df['contributor_id'].isnull())]
     merged_df.drop_duplicates(subset=['email', 'round_id', 'op_amt'], inplace=True)
 
     projects_list = ['Ambassadors', 'NumbaNERDs', 'SupportNERDs', 'Translators', 'Badgeholders', 'WLTA', 'WLTA Judge']
-    projects_selection = st.multiselect('Select the Contributor Path', projects_list + ['Other'], ['Ambassadors', 'NumbaNERDs', 'SupportNERDs', 'Translators', 'Badgeholders', 'WLTA', 'WLTA Judge', 'Other'])
+    projects_selection = st.multiselect('Select the Contributor Path', projects_list + ['Other'], projects_list + ['Other'])
 
     if 'Other' in projects_selection:
         filtered_df = merged_df[~merged_df['project_name'].isin(projects_list)]
@@ -317,7 +318,7 @@ def main():
             filtered_df = pd.concat([filtered_df, merged_df[merged_df['project_name'].isin(set(projects_selection) - {'Other'})]])
     else:
         filtered_df = merged_df[merged_df['project_name'].isin(projects_selection)] if projects_selection else merged_df
-            
+
     st.write(filtered_df)
 
         
