@@ -305,9 +305,11 @@ def main():
 
     st.write(filtered_df)
 
-    st.write("Inquiries DF Columns and Dtypes", inquiries_df.dtypes)
-    st.write("Contributors DF Columns and Dtypes", contributors_df.dtypes)
-
+    contributors_df['email'] = contributors_df['email'].str.strip().str.lower()
+    inquiries_df['email'] = inquiries_df['email'].str.strip().str.lower()
+    merged_df = contributors_df.merge(inquiries_df[['email', 'l2_address']], on='email', how='left')
+    st.write("Merged DF Preview", merged_df.head())
+    
     st.write(inquiries_df.head())
     st.write(all_persons_df.head())
     st.write(merged_df.head())
