@@ -292,9 +292,13 @@ def main():
 
     contributors_report_df = contributors_df.copy()
     contributors_report_df['l2_address'].replace('', np.nan, inplace=True)
+    contributors_report_df['email'] = inquiries_df['email'].str.strip().str.lower()
+    inquiries_df['email'] = inquiries_df['email'].str.strip().str.lower()
+    persons_df['email'] = persons_df['email'].str.strip().str.lower()
     
     all_persons_df = pd.concat([persons_df, inquiries_df], ignore_index=True)
     all_persons_df['status'] = all_persons_df.sort_values('updated_at').groupby('email')['status'].transform('last')
+    
 
     all_persons_df.loc[(all_persons_df['status'] == 'cleared') & (all_persons_df['updated_at'] < one_year_ago_utc), 'status'] = 'expired'
 
