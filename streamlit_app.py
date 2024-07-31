@@ -309,6 +309,15 @@ def main():
     inquiries_df['email'] = inquiries_df['email'].str.strip().str.lower()
     merged_df = contributors_df.merge(inquiries_df[['email', 'l2_address']], on='email', how='left')
     st.write("Merged DF Preview", merged_df)
+
+    st.write("Before Coalescing", merged_df.head())
+
+    merged_df['l2_address'] = merged_df['l2_address_x'].fillna(merged_df['l2_address_y'])
+
+    merged_df.drop(columns=['l2_address_x', 'l2_address_y'], inplace=True)
+    merged_df['l2_address'].replace(np.nan, '', inplace=True)
+
+    st.write("After Coalescing", merged_df.head())
     
     st.write(inquiries_df)
     st.write(all_persons_df)
