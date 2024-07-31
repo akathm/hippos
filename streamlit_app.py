@@ -54,12 +54,12 @@ def process_inquiries(results):
         email = attributes.get('email', '') or ''
         updated_at = attributes.get('updated-at')
         status = attributes.get('status')
-        l2_address = attributes.get('fields', {}).get('l-2-address', {}).get('value', '')
+        l2_address = attributes.get('fields', {}).get('l-2-address', {}).get('value', np.nan)
 
-        if l2_address and l2_address.lower().strip().startswith('0x'):
+        if pd.notna(l2_address) and l2_address.lower().strip().startswith('0x'):
             l2_address = l2_address.lower().strip()
         else:
-            l2_address = ''
+            l2_address = np.nan
         
         if status == 'approved':
             status = 'cleared'
@@ -84,12 +84,12 @@ def process_cases(results):
         fields = attributes.get('fields', {})
         business_name = fields.get('business-name', {}).get('value', '')
         updated_at = attributes.get('updated-at')
-        l2_address = fields.get('l-2-address', {}).get('value', '')
+        l2_address = fields.get('l-2-address', {}).get('value', np.nan)
 
-        if l2_address and l2_address.lower().strip().startswith('0x'):
+        if pd.notna(l2_address) and l2_address.lower().strip().startswith('0x'):
             l2_address = l2_address.lower().strip()
         else:
-            l2_address = ''
+            l2_address = np.nan
         
         if status == 'approved':
             status = 'cleared'
@@ -285,18 +285,6 @@ def main():
 
 ## Contributors-------------------------------------------------------
 
-    st.header('______________________________________')
-    st.header('Individual Contributors')
-
-    all_persons_df = pd.concat([persons_df, inquiries_df], ignore_index=True)
-    all_persons_df['status'] = all_persons_df.sort_values('updated_at').groupby('email')['status'].transform('last')
-    
-    all_persons_df.loc[(all_persons_df['status'] == 'cleared') & (all_persons_df['updated_at'] < one_year_ago_utc), 'status'] = 'expired'
-    merged_df = contributors_df.merge(all_persons_df[['email', 'status']], on='email', how='left')
-    merged_df['status'] = merged_df['status'].fillna('not started')
-    merged_df = merged_df[~(merged_df['email'].isnull() & merged_df['contributor_id'].isnull())]
-    merged_df.drop_duplicates(subset=['email', 'round_id', 'op_amt'], inplace=True)
-
 ##    all_persons_df = pd.concat([persons_df, inquiries_df], ignore_index=True)
 ##    all_persons_df['status'] = all_persons_df.sort_values('updated_at').groupby('email')['status'].transform('last')
 
@@ -306,6 +294,19 @@ def main():
 ##    merged_df['status'].fillna('not started', inplace=True)
 ##    merged_df = merged_df[~(merged_df['email'].isnull() & merged_df['contributor_id'].isnull())]
 ##    merged_df.drop_duplicates(subset=['email', 'round_id', 'op_amt'], inplace=True)
+    
+    st.header('______________________________________')
+    st.header('Individual Contributors')
+
+    all_persons_df = pd.concat([persons_df, inquiries_df], ignore_index=True)
+    all_persons_df['status'] = all_persons_df.sort_values('updated_at').groupby('email')['status'].transform('last')
+    
+    all_persons_df.loc[(all_persons_df['status'] == 'cleared') & (all_persons_df['updated_at'] < one_year_ago_utc), 'status'] = 'expired'
+    merged_df = contributors_df.merge(all_persons_df[['email', 'status']], on='email', how='left')
+    merged_df['status'] = merged_df['status'].fillna('not started')
+    merged_df['l2_address'] = merged_df['l2_address'].combine_first(contributors_df['l2_address'])
+    merged_df = merged_df[~(merged_df['email'].isnull() & merged_df['contributor_id'].isnull())]
+    merged_df.drop_duplicates(subset=['email', 'round_id', 'op_amt'], inplace=True)
 
     projects_list = ['Ambassadors', 'NumbaNERDs', 'SupportNERDs', 'Translators', 'Badgeholders', 'WLTA', 'WLTA Judge']
     projects_selection = st.multiselect('Select the Contributor Path', projects_list + ['Other'], ['Ambassadors', 'NumbaNERDs', 'SupportNERDs', 'Translators', 'Badgeholders', 'WLTA', 'WLTA Judge', 'Other'])
@@ -318,6 +319,7 @@ def main():
         filtered_df = merged_df[merged_df['project_name'].isin(projects_selection)] if projects_selection else merged_df
             
     st.write(filtered_df)
+
         
 ## Grants Rounds--------------------------------------------
         
