@@ -291,17 +291,14 @@ def main():
 ## TESTING------------------------------------------------------
 
     st.write('test')
-    concat_dfb = pd.concat([businesses_df, cases_df], ignore_index=True)
-    merge1b = pd.merge(businesses_df.reset_index(), cases_df.reset_index(), on=['email'], how='right')
-    concat_dfc = pd.concat([contributors_df, inquiries_df], ignore_index=True)
-    merge1c = pd.merge(contributors_df.reset_index(), inquiries_df.reset_index(), on=['email'], how='right')
-    merge2c = pd.merge(contributors_df.reset_index(), inquiries_df.reset_index(), on=['email', 'l2_address'], how='right')
-    merge3c = pd.merge(contributors_df, inquiries_df, on=['email'], how='right')
-    st.write(concat_dfc)
-    st.write(merge1c)
-    st.write(merge2c)
-    st.write(merge3c)
+    inquiries_df['updated_at'] = pd.to_datetime(inquiries_df['updated_at'], errors='coerce')
+    merged_df = pd.merge(contributors_df, inquiries_df, on=['email', 'l2_address'], how='inner', suffixes=('_contributor', '_inquiry'))
+    most_recent_inquiries = inquiries_df.sort_values('updated_at').drop_duplicates(['email', 'l2_address'], keep='last')
+    result_df = pd.merge(contributors_df, most_recent_inquiries, on=['email', 'l2_address'], how='left', suffixes=('_contributor', '_inquiry'))
+##    result_df = result_df.drop(columns=['updated_at_inquiry']).rename(columns={'updated_at_contributor': 'updated_at'})
 
+    st.write(result_df)
+    
 ## Contributors-------------------------------------------------------
 
 ##    all_persons_df = pd.concat([persons_df, inquiries_df], ignore_index=True)
