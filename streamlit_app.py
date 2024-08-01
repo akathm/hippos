@@ -236,9 +236,9 @@ def main():
         merged_df['updated_at'] = pd.to_datetime(merged_df['updated_at'], errors='coerce')
         merged_df['status'].fillna('not started', inplace=True)
         filtered_df = merged_df[
-            (merged_df['name'].str.lower() == search_term_lower) |
-            (merged_df['email'].str.lower() == search_term_lower) |
-            (merged_df['l2_address'].str.lower() == search_term_lower)
+            (merged_df['name'].str.lower() == search_term) |
+            (merged_df['email'].str.lower() == search_term) |
+            (merged_df['l2_address'].str.lower() == search_term)
         ]
 
         display_results(filtered_df, columns_to_display, message, status_column)
