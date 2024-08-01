@@ -315,8 +315,8 @@ def main():
     merged_df = contributors_df.merge(all_persons_df[['email', 'status', 'l2_address']], on='email', how='left')
     merged_df['status'] = merged_df['status'].fillna('not started')
     merged_df['l2_address'] = merged_df['l2_address_x'].combine_first(merged_df['l2_address_y'])
-##    merged_df['l2_address'] = merged_df.apply(lambda row: row['l2_address_x'] if pd.notna(row['l2_address_x']) else row['l2_address_y'], axis=1)
-##    merged_df = merged_df.drop(columns=['l2_address_x', 'l2_address_y'])
+    merged_df['l2_address'] = merged_df.apply(lambda row: row['l2_address_x'] if pd.notna(row['l2_address_x']) else row['l2_address_y'], axis=1)
+    merged_df = merged_df.drop(columns=['l2_address_x', 'l2_address_y'])
     merged_df = merged_df[~(merged_df['email'].isnull() & merged_df['avatar'].isnull())]
     merged_df.drop_duplicates(subset=['email', 'round_id', 'op_amt'], inplace=True)
 
@@ -331,8 +331,6 @@ def main():
         filtered_df = merged_df[merged_df['project_name'].isin(projects_selection)] if projects_selection else merged_df
 
     st.write(filtered_df)
-    st.write(all_persons_df)
-    st.write(inquiries_df)
         
 ## Grants Rounds--------------------------------------------
         
