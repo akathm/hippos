@@ -290,7 +290,17 @@ def main():
         display_results(filtered_df, ['project_name', 'email', 'l2_address', 'round_id', 'grant_id', 'status'], 
                 "This project is {status} for KYC.")
 
+## TESTING------------------------------------------------------
 
+    st.write('test')
+    concat_dfb = pd.concat([businesses_df, cases_df], ignore_index=True)
+    merge1b = pd.merge([businesses_df, cases_df], on=['email'])
+    concat_dfc = pd.concat([contributors_df, inquiries_df], ignore_index=True)
+    merge1c = pd.merge([contributors_df, inquiries_df], on=['email'])
+    merge2c = pd.merge([contributors_df, inquiries_df], on=['email', 'l2_address'])
+    st.write(concat_dfc)
+    st.write(merge1c)
+    st.write(merge1b)
 
 ## Contributors-------------------------------------------------------
 
