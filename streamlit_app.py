@@ -292,10 +292,9 @@ def main():
 
     st.write('test')
     inquiries_df['updated_at'] = pd.to_datetime(inquiries_df['updated_at'], errors='coerce')
-    merged_df = pd.merge(contributors_df, inquiries_df, on=['email', 'l2_address'], how='inner', suffixes=('_contributor', '_inquiry'))
+    merged_df = pd.merge(contributors_df, inquiries_df, on=['email', 'l2_address'], how='left', suffixes=('_contributor', '_inquiry'))
     most_recent_inquiries = inquiries_df.sort_values('updated_at').drop_duplicates(['email', 'l2_address'], keep='last')
-    result_df = pd.merge(contributors_df, most_recent_inquiries, on=['email', 'l2_address'], how='left', suffixes=('_contributor', '_inquiry'))
-##    result_df = result_df.drop(columns=['updated_at_inquiry']).rename(columns={'updated_at_contributor': 'updated_at'})
+    final_df = pd.merge(contributors_df, most_recent_inquiries, on=['email', 'l2_address'], how='left', suffixes=('_contributor', '_inquiry'))
 
     st.write(result_df)
     
