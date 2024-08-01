@@ -293,9 +293,9 @@ def main():
 ## TESTING------------------------------------------------------
 
     st.write('test')
-    concat_dfb = pd.concat(businesses_df, cases_df, ignore_index=True)
+    concat_dfb = pd.concat([businesses_df, cases_df], ignore_index=True)
     merge1b = pd.merge(businesses_df.reset_index(), cases_df.reset_index(), on=['email'], how='right')
-    concat_dfc = pd.concat(contributors_df, inquiries_df, ignore_index=True)
+    concat_dfc = pd.concat([contributors_df, inquiries_df], ignore_index=True)
     merge1c = pd.merge(contributors_df.reset_index(), inquiries_df.reset_index(), on=['email'], how='right')
     merge2c = pd.merge(contributors_df.reset_index(), inquiries_df.reset_index(), on=['email', 'l2_address'], how='right')
     merge3c = pd.merge(contributors_df, inquiries_df, on=['email'], how='right')
