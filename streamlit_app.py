@@ -52,6 +52,7 @@ def process_inquiries(results):
         name_last = attributes.get('name-last', '') or ''
         name = f"{name_first} {name_middle} {name_last}".strip()
         email = attributes.get('email', '') or ''
+        email = email.lower().strip()
         updated_at = attributes.get('updated-at')
         status = attributes.get('status')
         l2_address = attributes.get('fields', {}).get('l-2-address', {}).get('value', np.nan)
@@ -83,6 +84,8 @@ def process_cases(results):
         status = attributes.get('status')
         fields = attributes.get('fields', {})
         business_name = fields.get('business-name', {}).get('value', '')
+        email = attributes.get('email', '') or ''
+        email = email.lower().strip()
         updated_at = attributes.get('updated-at')
         l2_address = fields.get('l-2-address', {}).get('value', np.nan)
 
