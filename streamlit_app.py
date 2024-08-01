@@ -64,9 +64,7 @@ def process_inquiries(results):
         
         if status == 'approved':
             status = '🟢 cleared'
-        if status == 'expired':
-            status = '🌕 retry'        
-        if status == 'pending':
+        if status in ['expired', 'pending', 'created']:
             status = '🌕 retry'
         if status == 'declined':
             status = '🛑 rejected'
