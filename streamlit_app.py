@@ -51,7 +51,7 @@ def process_inquiries(results):
         name_middle = attributes.get('name-middle', '') or ''
         name_last = attributes.get('name-last', '') or ''
         name = f"{name_first} {name_middle} {name_last}".strip()
-        email = attributes.get('email', '') or ''
+        email = attributes.get('email-address', '') or ''
         email = email.lower().strip()
         updated_at = attributes.get('updated-at')
         status = attributes.get('status')
