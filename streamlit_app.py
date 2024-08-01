@@ -291,13 +291,25 @@ def main():
 ## TESTING------------------------------------------------------
 
     st.write('test')
+
     all_persons_df = pd.concat([persons_df, inquiries_df], ignore_index=True)
+    all_persons_df['updated_at'] = pd.to_datetime(all_persons_df['updated_at'], errors='coerce')
     all_persons_df['status'] = all_persons_df.sort_values('updated_at').groupby('email')['status'].transform('last')
     all_persons_df['l2_address'] = all_persons_df.sort_values('updated_at').groupby('email')['l2_address'].transform('last')
     all_persons_df.loc[(all_persons_df['status'] == 'cleared') & (all_persons_df['updated_at'] < one_year_ago_utc), 'status'] = 'expired'
-    merged_df = pd.merge(contributors_df, all_persons_df, on=['email', 'l2_address'], how='left', suffixes=('_contributor', '_kyc'))
+
+    merged_df = pd.merge(contributors_df, all_persons_df[['email', 'l2_address', 'status']], on=['email', 'l2_address'], how='left', suffixes=('_contributor', '_kyc'))
+
     most_recent_inquiries = inquiries_df.sort_values('updated_at').drop_duplicates(['email', 'l2_address'], keep='last')
-    final_df = pd.merge(contributors_df, most_recent_inquiries, on=['email', 'l2_address'], how='left', suffixes=('_contributor', '_kyc'))
+    final_df = pd.merge(contributors_df, most_recent_inquiries, on=['email', 'l2_address'], how='left', suffixes=('_contributor', '_inquiry'))
+
+##    all_persons_df = pd.concat([persons_df, inquiries_df], ignore_index=True)
+  ##  all_persons_df['status'] = all_persons_df.sort_values('updated_at').groupby('email')['status'].transform('last')
+    ##all_persons_df['l2_address'] = all_persons_df.sort_values('updated_at').groupby('email')['l2_address'].transform('last')
+##    all_persons_df.loc[(all_persons_df['status'] == 'cleared') & (all_persons_df['updated_at'] < one_year_ago_utc), 'status'] = 'expired'
+  ##  merged_df = pd.merge(contributors_df, all_persons_df, on=['email', 'l2_address'], how='left', suffixes=('_contributor', '_kyc'))
+    ##most_recent_inquiries = inquiries_df.sort_values('updated_at').drop_duplicates(['email', 'l2_address'], keep='last')
+    ##final_df = pd.merge(contributors_df, most_recent_inquiries, on=['email', 'l2_address'], how='left', suffixes=('_contributor', '_kyc'))
 
     st.write(final_df)
     
