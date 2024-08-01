@@ -236,9 +236,10 @@ def main():
         merged_df['updated_at'] = pd.to_datetime(merged_df['updated_at'], errors='coerce')
         merged_df['status'].fillna('not started', inplace=True)
         filtered_df = merged_df[
-            merged_df['name'].str.contains(search_term, case=False, na=False) |
-            merged_df['email'].str.contains(search_term, case=False, na=False) |
-            merged_df['l2_address'].str.contains(search_term, case=False, na=False)
+            merged_df['name'].str.lower().isin(search_term) |
+            merged_df['business_name'].str.lower().isin(search_term) |
+            merged_df['email'].str.lower().isin(search_term) |
+            merged_df['l2_address'].str.lower().isin(search_term)
         ]
 
         display_results(filtered_df, columns_to_display, message, status_column)
@@ -277,7 +278,7 @@ def main():
     
         if search_term:
             filtered_df = merged_all[
-                merged_all['name'].str.lower().isin(search_term) |
+                merged_all['project_name'].str.lower().isin(search_term) |
                 merged_all['email'].str.contains(search_term, case=False, na=False) |
                 merged_all['l2_address'].str.contains(search_term, case=False, na=False)
             ]
