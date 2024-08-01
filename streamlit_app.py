@@ -63,11 +63,11 @@ def process_inquiries(results):
             l2_address = np.nan
         
         if status == 'approved':
-            status = 'cleared'
+            status = '🟢 cleared'
         if status == 'expired':
-            status = 'retry'
+            status = '🌕 retry'        
         if status == 'pending':
-            status = 'retry'
+            status = '🌕 retry'
 
         records.append({
             'inquiry_id': inquiry_id,
