@@ -14,7 +14,7 @@ with st.expander('About the Results'):
     st.markdown('**Every project must complete KYC (or KYB for businesses) in order to receive tokens.**')
     st.info('This tool can be used to lookup project status for a specific grant round or workflow. If you do not see the expected grants round here, or you see other unexpected results, please reach out to the Grant Program Manager to correct this issue.')
     st.markdown('**What should I do if a project I\'m talking to is not in *\"cleared\"* status?**')
-    st.warning('If you see a project is in *\"pending\"* status, this means that we are waiting on action from that team. Please direct them to check their emails: one or more responsible parties have been emailed with a link to complete further steps in the KYC process.  \n  \nIf you see an individual is in *\"retry\"*, please ask them to attempt the KYC again (kyc.optimism.io/). They did not submit all required documents or abandoned the process.   \n  \nProjects or individuals in *\"needs_review\"* status are being reviewed by our Compliance team. Please allow up to 72 hours for final decision.')
+    st.warning('If you see a project is in *\"pending\"* status, this means that we are waiting on action from that team. Please direct them to check their emails: one or more responsible parties have been emailed with a link to complete further steps in the KYC process.  \n  \nIf you see an individual is in *\"retry\"*, please ask them to attempt the KYC again (kyc.optimism.io/). They did not submit all required documents or abandoned the process.   \n  \nProjects or individuals in *\"needs review\"* status are being reviewed by our Compliance team. Please allow up to 72 hours for final decision.')
 
 
 ## PERSONA-------------------------------------------------------------------
@@ -68,6 +68,10 @@ def process_inquiries(results):
             status = '🌕 retry'        
         if status == 'pending':
             status = '🌕 retry'
+        if status == 'declined':
+            status = '🛑 rejected'
+        if status == 'needs_review':
+            status = '🟠 needs review'
 
         records.append({
             'inquiry_id': inquiry_id,
@@ -233,8 +237,7 @@ def main():
     def search_and_display(df1, df2, search_term, columns_to_display, message, status_column='status'):
         merged_df = pd.concat([df1, df2], ignore_index=True)
         merged_df['updated_at'] = pd.to_datetime(merged_df['updated_at'], errors='coerce')
-        merged_df['status'].fillna('not started', inplace=True)
-
+        merged_df['status'].fillna('🔘 not started', inplace=True)
         filtered_df = merged_df[
             merged_df['name'].str.contains(search_term, case=False, na=False) |
             merged_df['email'].str.contains(search_term, case=False, na=False) |
