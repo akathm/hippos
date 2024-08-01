@@ -296,7 +296,7 @@ def main():
     most_recent_inquiries = inquiries_df.sort_values('updated_at').drop_duplicates(['email', 'l2_address'], keep='last')
     final_df = pd.merge(contributors_df, most_recent_inquiries, on=['email', 'l2_address'], how='left', suffixes=('_contributor', '_inquiry'))
 
-    st.write(result_df)
+    st.write(final_df)
     
 ## Contributors-------------------------------------------------------
 
