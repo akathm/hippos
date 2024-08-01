@@ -80,6 +80,8 @@ def process_cases(results):
     records = []
     for item in results:
         case_id = item['id']
+        inquiries = item.get('relationships', {}).get('inquiries', {}).get('data', [])
+        inquiry_id = inquiries[0]['id'] if inquiries else np.nan
         attributes = item.get('attributes', {})
         status = attributes.get('status')
         fields = attributes.get('fields', {})
