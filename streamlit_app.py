@@ -294,13 +294,15 @@ def main():
 
     st.write('test')
     concat_dfb = pd.concat([businesses_df, cases_df], ignore_index=True)
-    merge1b = pd.merge([businesses_df, cases_df], on=['email'])
+    merge1b = pd.merge([businesses_df.reset_index(), cases_df.reset_index()], on=['email'])
     concat_dfc = pd.concat([contributors_df, inquiries_df], ignore_index=True)
-    merge1c = pd.merge([contributors_df, inquiries_df], on=['email'])
-    merge2c = pd.merge([contributors_df, inquiries_df], on=['email', 'l2_address'])
+    merge1c = pd.merge([contributors_df.reset_index(), inquiries_df.reset_index()], on=['email'])
+    merge2c = pd.merge([contributors_df.reset_index(), inquiries_df.reset_index()], on=['email', 'l2_address'])
+    merge3c = pd.merge([contributors_df, inquiries_df], on=['email'], how='right')
     st.write(concat_dfc)
     st.write(merge1c)
-    st.write(merge1b)
+    st.write(merge2c)
+    st.write(merge3c)
 
 ## Contributors-------------------------------------------------------
 
