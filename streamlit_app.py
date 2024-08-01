@@ -231,13 +231,10 @@ def main():
         most_recent_status = df.loc[df['updated_at'].idxmax(), status_column]
         st.write(f"### {message.format(status=most_recent_status)}")
 
-    def merge_addresses(df1, df2, key):
-        return pd.merge(df1, df2, on=key, how='outer')
-
     def search_and_display(df1, df2, search_term, columns_to_display, message, status_column='status'):
         merged_df = pd.concat([df1, df2], ignore_index=True)
         merged_df['updated_at'] = pd.to_datetime(merged_df['updated_at'], errors='coerce')
-        merged_df['status'].fillna('🔘 not started', inplace=True)
+        merged_df['status'].fillna('not started', inplace=True)
         filtered_df = merged_df[
             merged_df['name'].str.contains(search_term, case=False, na=False) |
             merged_df['email'].str.contains(search_term, case=False, na=False) |
@@ -280,7 +277,7 @@ def main():
     
         if search_term:
             filtered_df = merged_all[
-                merged_all['project_name'].str.contains(search_term, case=False, na=False) |
+                merged_all['name'].str.lower().isin(search_term) |
                 merged_all['email'].str.contains(search_term, case=False, na=False) |
                 merged_all['l2_address'].str.contains(search_term, case=False, na=False)
             ]
