@@ -293,7 +293,7 @@ def main():
     st.write('test')
 
     all_persons_df = pd.concat([persons_df, inquiries_df], ignore_index=True)
-    st.write(all_persons_df)
+ ##   st.write(all_persons_df)
     
     all_persons_df['updated_at'] = pd.to_datetime(all_persons_df['updated_at'], errors='coerce')
     all_persons_df['status'] = all_persons_df.sort_values('updated_at').groupby('email')['status'].transform('last')
@@ -314,7 +314,7 @@ def main():
     ##most_recent_inquiries = inquiries_df.sort_values('updated_at').drop_duplicates(['email', 'l2_address'], keep='last')
     ##final_df = pd.merge(contributors_df, most_recent_inquiries, on=['email', 'l2_address'], how='left', suffixes=('_contributor', '_kyc'))
 
-    st.write(final_df)
+   ## st.write(final_df)
     
 ## Contributors-------------------------------------------------------
 
