@@ -290,7 +290,7 @@ def main():
 
 ## TESTING------------------------------------------------------
 
-    st.write('test')
+ ##   st.write('test')
 
     all_persons_df = pd.concat([persons_df, inquiries_df], ignore_index=True)
  ##   st.write(all_persons_df)
