@@ -295,16 +295,29 @@ def main():
     all_persons_df = pd.concat([persons_df, inquiries_df], ignore_index=True)
  ##   st.write(all_persons_df)
     
-    all_persons_df['updated_at'] = pd.to_datetime(all_persons_df['updated_at'], errors='coerce')
+    #all_persons_df['updated_at'] = pd.to_datetime(all_persons_df['updated_at'], errors='coerce')
+    #all_persons_df['status'] = all_persons_df.sort_values('updated_at').groupby('email')['status'].transform('last')
+    #all_persons_df['l2_address'] = all_persons_df.sort_values('updated_at').groupby('email')['l2_address'].transform('last')
+    #all_persons_df.loc[(all_persons_df['status'] == 'cleared') & (all_persons_df['updated_at'] < one_year_ago_utc), 'status'] = 'expired'
+
+    #merged_df = pd.merge(contributors_df, all_persons_df[['email', 'l2_address', 'status']], on=['email', 'l2_address'], how='left', suffixes=('_contributor', '_kyc'))
+
+    #most_recent_inquiries = inquiries_df.sort_values('updated_at').drop_duplicates(['email', 'l2_address'], keep='last')
+    #final_df = pd.merge(contributors_df, most_recent_inquiries, on=['email', 'l2_address'], how='left', suffixes=('_contributor', '_inquiry'))
+
+    all_persons_df = pd.concat([persons_df, inquiries_df], ignore_index=True)
     all_persons_df['status'] = all_persons_df.sort_values('updated_at').groupby('email')['status'].transform('last')
     all_persons_df['l2_address'] = all_persons_df.sort_values('updated_at').groupby('email')['l2_address'].transform('last')
     all_persons_df.loc[(all_persons_df['status'] == 'cleared') & (all_persons_df['updated_at'] < one_year_ago_utc), 'status'] = 'expired'
 
-    merged_df = pd.merge(contributors_df, all_persons_df[['email', 'l2_address', 'status']], on=['email', 'l2_address'], how='left', suffixes=('_contributor', '_kyc'))
-
-    most_recent_inquiries = inquiries_df.sort_values('updated_at').drop_duplicates(['email', 'l2_address'], keep='last')
-    final_df = pd.merge(contributors_df, most_recent_inquiries, on=['email', 'l2_address'], how='left', suffixes=('_contributor', '_inquiry'))
-    
+    merged_df = contributors_df.merge(all_persons_df[['email', 'status', 'l2_address']], on='email', how='left')
+    merged_df['status'] = merged_df['status'].fillna('not started')
+    merged_df['l2_address'] = merged_df['l2_address_x'].combine_first(merged_df['l2_address_y'])
+    merged_df['l2_address'] = merged_df.apply(lambda row: row['l2_address_x'] if pd.notna(row['l2_address_x']) else row['l2_address_y'], axis=1)
+    merged_df = merged_df.drop(columns=['l2_address_x', 'l2_address_y'])
+    merged_df = merged_df[~(merged_df['email'].isnull() & merged_df['avatar'].isnull())]
+    merged_df.drop_duplicates(subset=['email', 'round_id', 'op_amt'], inplace=True)
+    st.write(merged_df)
 
 ##    all_persons_df = pd.concat([persons_df, inquiries_df], ignore_index=True)
   ##  all_persons_df['status'] = all_persons_df.sort_values('updated_at').groupby('email')['status'].transform('last')
