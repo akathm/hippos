@@ -314,17 +314,17 @@ def main():
     all_persons_df['name'] = all_persons_df.sort_values('updated_at').groupby('email')['name'].transform('last')
     all_persons_df.loc[(all_persons_df['status'] == 'cleared') & (all_persons_df['updated_at'] < one_year_ago_utc), 'status'] = 'expired'
 
-    print("Number of records in all_persons_df:", len(all_persons_df))
-    print("Number of records in contributors_df:", len(contributors_df))
+    st.write("Number of records in all_persons_df:", len(all_persons_df))
+    st.write("Number of records in contributors_df:", len(contributors_df))
     all_contributors = contributors_df.merge(all_persons_df[['email', 'name', 'status', 'l2_address', 'updated_at']], on='email', how='left')
-    print("Number of records in all_contributors after merge:", len(all_contributors))
+    st.write("Number of records in all_contributors after merge:", len(all_contributors))
     all_contributors['status'] = all_contributors['status'].fillna('not started')
     all_contributors['l2_address'] = all_contributors.apply(lambda row: row['l2_address_x'] if pd.notna(row['l2_address_x']) else row['l2_address_y'], axis=1)
     all_contributors = all_contributors.drop(columns=['l2_address_x', 'l2_address_y'])
     all_contributors = all_contributors[~(all_contributors['email'].isnull() & all_contributors['avatar'].isnull())]
-    print("Number of records in all_contributors after filtering null 'email' and 'avatar':", len(all_contributors))
+    st.write("Number of records in all_contributors after filtering null 'email' and 'avatar':", len(all_contributors))
     all_contributors.drop_duplicates(subset=['email', 'round_id', 'op_amt'], inplace=True)
-    print("Number of records in all_contributors after removing duplicates:", len(all_contributors))
+    st.write("Number of records in all_contributors after removing duplicates:", len(all_contributors))
 
 
     missing_records = all_persons_df[~all_persons_df['email'].isin(all_contributors['email'])]
