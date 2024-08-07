@@ -302,12 +302,14 @@ def main():
         display_results(filtered_df, ['project_name', 'email', 'l2_address', 'round_id', 'grant_id', 'status'], 
                 "This project is {status} for KYC.")
 
-## TESTING------------------------------------------------------
+## TESTING----------------------------------------------------
 
  ##   st.write('test')
 
     ##all_persons_df = pd.concat([persons_df, inquiries_df], ignore_index=True)
- ##   st.write(all_persons_df)
+    st.write(persons_df)
+    all_persons_df = pd.concat([persons_df, inquiries_df], ignore_index=True)
+    st.write(all_persons_df)
     
     #all_persons_df['updated_at'] = pd.to_datetime(all_persons_df['updated_at'], errors='coerce')
     #all_persons_df['status'] = all_persons_df.sort_values('updated_at').groupby('email')['status'].transform('last')
