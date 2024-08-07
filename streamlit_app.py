@@ -316,7 +316,7 @@ def main():
 
     st.write("Number of records in all_persons_df:", len(all_persons_df))
     st.write("Number of records in contributors_df:", len(contributors_df))
-    all_contributors = contributors_df.merge(all_persons_df[['email', 'name', 'status', 'l2_address', 'updated_at']], on='email', how='left')
+    all_contributors = contributors_df.merge(all_persons_df[['email', 'name', 'status', 'l2_address', 'updated_at']], on='email', how='outer')
     st.write("Number of records in all_contributors after merge:", len(all_contributors))
     all_contributors['status'] = all_contributors['status'].fillna('not started')
     all_contributors['l2_address'] = all_contributors.apply(lambda row: row['l2_address_x'] if pd.notna(row['l2_address_x']) else row['l2_address_y'], axis=1)
