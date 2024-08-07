@@ -260,7 +260,6 @@ def main():
     all_businesses['status'] = all_businesses.sort_values('updated_at').groupby('email')['status'].transform('last')
     all_businesses['l2_address'] = all_businesses.sort_values('updated_at').groupby('email')['l2_address'].transform('last')
     all_businesses['updated_at'] = all_businesses.sort_values('updated_at').groupby('email')['updated_at'].transform('last')
-    all_businesses['name'] = all_businesses.sort_values('updated_at').groupby('email')['name'].transform('last')
     all_businesses.loc[(all_businesses['status'] == 'cleared') & (all_businesses['updated_at'] < one_year_ago_utc), 'status'] = 'expired'
     all_businesses['status'] = all_businesses['status'].fillna('not started')
     all_businesses = all_businesses[~(all_businesses['email'].isnull())]
