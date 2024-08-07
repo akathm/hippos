@@ -255,9 +255,19 @@ def main():
     all_contributors = all_contributors.drop(columns=['l2_address_x', 'l2_address_y'])
     all_contributors = all_contributors[~(all_contributors['email'].isnull() & all_contributors['avatar'].isnull())]
     all_contributors.drop_duplicates(subset=['email', 'round_id', 'op_amt'], inplace=True)
+
+    all_businesses = contributors_df.merge(all_persons_df[['email', 'name', 'status', 'l2_address', 'updated_at']], on='email', how='outer')
+    all_businesses['status'] = all_persons_df.sort_values('updated_at').groupby('email')['status'].transform('last')
+    all_businesses['l2_address'] = all_persons_df.sort_values('updated_at').groupby('email')['l2_address'].transform('last')
+    all_businesses['updated_at'] = all_persons_df.sort_values('updated_at').groupby('email')['updated_at'].transform('last')
+    all_businesses['name'] = all_persons_df.sort_values('updated_at').groupby('email')['name'].transform('last')
+    all_businesses.loc[(all_persons_df['status'] == 'cleared') & (all_persons_df['updated_at'] < one_year_ago_utc), 'status'] = 'expired'
+    all_businesses['status'] = all_contributors['status'].fillna('not started')
+    all_businesses = all_contributors[~(all_businesses['email'].isnull())]
+    all_businesses.drop_duplicates(subset=['email'], inplace=True)
     
     if option in ['Superchain', 'Vendor']:
-        search_and_display(businesses_df, cases_df, search_term, ['name', 'email', 'l2_address', 'updated_at', 'status'], 
+        search_and_display(all_businesses, search_term, ['name', 'email', 'l2_address', 'updated_at', 'status'], 
                        "This team is {status} for KYB.")
     elif option == 'Contribution Path':
         if 'avatar' not in all_contributors.columns:
@@ -304,44 +314,10 @@ def main():
                 "This project is {status} for KYC.")
 
 ## TESTING--------------------------------------------------
-
- ##   st.write('test')
-    
-    #all_persons_df['updated_at'] = pd.to_datetime(all_persons_df['updated_at'], errors='coerce')
-    #all_persons_df['status'] = all_persons_df.sort_values('updated_at').groupby('email')['status'].transform('last')
-    #all_persons_df['l2_address'] = all_persons_df.sort_values('updated_at').groupby('email')['l2_address'].transform('last')
-    #all_persons_df.loc[(all_persons_df['status'] == 'cleared') & (all_persons_df['updated_at'] < one_year_ago_utc), 'status'] = 'expired'
-
-    #merged_df = pd.merge(contributors_df, all_persons_df[['email', 'l2_address', 'status']], on=['email', 'l2_address'], how='left', suffixes=('_contributor', '_kyc'))
-
-    #most_recent_inquiries = inquiries_df.sort_values('updated_at').drop_duplicates(['email', 'l2_address'], keep='last')
-    #final_df = pd.merge(contributors_df, most_recent_inquiries, on=['email', 'l2_address'], how='left', suffixes=('_contributor', '_inquiry'))
-
-    st.write(inquiries_df)
-
-##    all_persons_df = pd.concat([persons_df, inquiries_df], ignore_index=True)
-  ##  all_persons_df['status'] = all_persons_df.sort_values('updated_at').groupby('email')['status'].transform('last')
-    ##all_persons_df['l2_address'] = all_persons_df.sort_values('updated_at').groupby('email')['l2_address'].transform('last')
-##    all_persons_df.loc[(all_persons_df['status'] == 'cleared') & (all_persons_df['updated_at'] < one_year_ago_utc), 'status'] = 'expired'
-  ##  merged_df = pd.merge(contributors_df, all_persons_df, on=['email', 'l2_address'], how='left', suffixes=('_contributor', '_kyc'))
-    ##most_recent_inquiries = inquiries_df.sort_values('updated_at').drop_duplicates(['email', 'l2_address'], keep='last')
-    ##final_df = pd.merge(contributors_df, most_recent_inquiries, on=['email', 'l2_address'], how='left', suffixes=('_contributor', '_kyc'))
-
-   ## st.write(final_df)
     
 ## Contributors-------------------------------------------------------
 
-##    all_persons_df = pd.concat([persons_df, inquiries_df], ignore_index=True)
-##    all_persons_df['status'] = all_persons_df.sort_values('updated_at').groupby('email')['status'].transform('last')
-
-##    all_persons_df.loc[(all_persons_df['status'] == 'cleared') & (all_persons_df['updated_at'] < one_year_ago_utc), 'status'] = 'expired'
-
-##    merged_df = contributors_df.merge(all_persons_df[['email', 'status']], on='email', how='left')
-##    merged_df['status'].fillna('not started', inplace=True)
-##    merged_df = merged_df[~(merged_df['email'].isnull() & merged_df['contributor_id'].isnull())]
-##    merged_df.drop_duplicates(subset=['email', 'round_id', 'op_amt'], inplace=True)
-
-    st.header('______________________________________')
+    st.header('______________________________')
     st.header('Individual Contributors')
 
     all_persons_df = pd.concat([persons_df, inquiries_df], ignore_index=True)
