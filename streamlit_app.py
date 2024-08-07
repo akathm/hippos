@@ -63,6 +63,9 @@ def process_inquiries(results):
             l2_address = l2_address.lower().strip()
         else:
             l2_address = np.nan
+
+        if '@' not in email:
+            email = ''
         
         if status == 'approved':
             status = '🟢 cleared'
@@ -107,14 +110,15 @@ def process_cases(results):
         if status == 'approved':
             status = 'cleared'
 
-        records.append({
-            'case_id': case_id,
-            'business_name': business_name,
-            'email': '',
-            'l2_address': '',
-            'updated_at': updated_at,
-            'status': status
-        })
+        if business_name:
+            records.append({
+                'case_id': case_id,
+                'business_name': business_name,
+                'email': email,
+                'l2_address': l2_address,
+                'updated_at': updated_at,
+                'status': status
+            })
             
     return pd.DataFrame(records)
 
