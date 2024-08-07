@@ -230,7 +230,7 @@ def main():
         st.write(f"### {message.format(status=most_recent_status)}")
 
     def search_and_display(df, search_term, columns_to_display, message, status_column='status'):
-        df['updated_at'] = pd.to_datetime(merged_df['updated_at'], errors='coerce')
+        df['updated_at'] = pd.to_datetime(df['updated_at'], errors='coerce')
         df['status'].fillna('not started', inplace=True)
         filtered_df = df[
             df['name'].str.contains(search_term, case=False, na=False) |
