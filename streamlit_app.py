@@ -254,6 +254,9 @@ def main():
     all_contributors = all_contributors[~(all_contributors['email'].isnull() & all_contributors['avatar'].isnull())]
     all_contributors.drop_duplicates(subset=['email', 'round_id', 'op_amt'], inplace=True)
 
+    missing_records = all_persons_df[~all_persons_df['email'].isin(all_contributors['email'])]
+    print("Missing records from all_persons_df in all_contributors:")
+    print(missing_records)
     
     if option in ['Superchain', 'Vendor']:
         search_and_display(businesses_df, cases_df, search_term, ['name', 'email', 'l2_address', 'updated_at', 'status'], 
