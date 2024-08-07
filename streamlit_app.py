@@ -109,7 +109,7 @@ def process_cases(results):
 
         records.append({
             'case_id': case_id,
-            'name': business_name,
+            'business_name': business_name,
             'email': '',
             'l2_address': '',
             'updated_at': updated_at,
@@ -234,13 +234,14 @@ def main():
     def search_and_display(df, search_term, columns_to_display, message, status_column='status'):
         df['updated_at'] = pd.to_datetime(df['updated_at'], errors='coerce')
         df['status'].fillna('not started', inplace=True)
-        filtered_df = df[
-            df['name'].str.contains(search_term, case=False, na=False) |
-            df['email'].str.contains(search_term, case=False, na=False) |
-            df['l2_address'].str.contains(search_term, case=False, na=False)
-        ]
+        name_search = df.get('name', pd.Series([''] * len(df))).str.contains(search_term, case=False, na=False)
+        business_name_search = df.get('business_name', pd.Series([''] * len(df))).str.contains(search_term, case=False, na=False)
+        email_search = df['email'].str.contains(search_term, case=False, na=False)
+        l2_address_search = df['l2_address'].str.contains(search_term, case=False, na=False)
+        filtered_df = df[name_search | business_name_search | email_search | l2_address_search]
 
         display_results(filtered_df, columns_to_display, message, status_column)
+        
 
     all_persons_df = pd.concat([persons_df, inquiries_df], ignore_index=True)
     all_persons_df['status'] = all_persons_df.sort_values('updated_at').groupby('email')['status'].transform('last')
@@ -266,7 +267,7 @@ def main():
     all_businesses.drop_duplicates(subset=['email'], inplace=True)
     
     if option in ['Superchain', 'Vendor']:
-        search_and_display(all_businesses, search_term, ['name', 'email', 'l2_address', 'updated_at', 'status'], 
+        search_and_display(all_businesses, search_term, ['business_name', 'email', 'l2_address', 'updated_at', 'status'], 
                        "This team is {status} for KYB.")
     elif option == 'Contribution Path':
         if 'avatar' not in all_contributors.columns:
