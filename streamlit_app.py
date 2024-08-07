@@ -317,7 +317,7 @@ def main():
     #most_recent_inquiries = inquiries_df.sort_values('updated_at').drop_duplicates(['email', 'l2_address'], keep='last')
     #final_df = pd.merge(contributors_df, most_recent_inquiries, on=['email', 'l2_address'], how='left', suffixes=('_contributor', '_inquiry'))
 
-    st.write(inquiries.df)
+    st.write(inquiries_df)
 
 ##    all_persons_df = pd.concat([persons_df, inquiries_df], ignore_index=True)
   ##  all_persons_df['status'] = all_persons_df.sort_values('updated_at').groupby('email')['status'].transform('last')
