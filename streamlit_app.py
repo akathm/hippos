@@ -253,10 +253,6 @@ def main():
     all_contributors = all_contributors.drop(columns=['l2_address_x', 'l2_address_y'])
     all_contributors = all_contributors[~(all_contributors['email'].isnull() & all_contributors['avatar'].isnull())]
     all_contributors.drop_duplicates(subset=['email', 'round_id', 'op_amt'], inplace=True)
-
-    missing_records = all_persons_df[~all_persons_df['email'].isin(all_contributors['email'])]
-    print("Missing records from all_persons_df in all_contributors:")
-    print(missing_records)
     
     if option in ['Superchain', 'Vendor']:
         search_and_display(businesses_df, cases_df, search_term, ['name', 'email', 'l2_address', 'updated_at', 'status'], 
@@ -310,9 +306,23 @@ def main():
  ##   st.write('test')
 
     ##all_persons_df = pd.concat([persons_df, inquiries_df], ignore_index=True)
-    st.write(persons_df)
     all_persons_df = pd.concat([persons_df, inquiries_df], ignore_index=True)
-    st.write(all_persons_df)
+    all_persons_df['status'] = all_persons_df.sort_values('updated_at').groupby('email')['status'].transform('last')
+    all_persons_df['l2_address'] = all_persons_df.sort_values('updated_at').groupby('email')['l2_address'].transform('last')
+    all_persons_df['updated_at'] = all_persons_df.sort_values('updated_at').groupby('email')['updated_at'].transform('last')
+    all_persons_df['name'] = all_persons_df.sort_values('updated_at').groupby('email')['name'].transform('last')
+    all_persons_df.loc[(all_persons_df['status'] == 'cleared') & (all_persons_df['updated_at'] < one_year_ago_utc), 'status'] = 'expired'
+    all_contributors = contributors_df.merge(all_persons_df[['email', 'name', 'status', 'l2_address', 'updated_at']], on='email', how='left')
+    all_contributors['status'] = all_contributors['status'].fillna('not started')
+    all_contributors['l2_address'] = all_contributors['l2_address_x'].combine_first(all_contributors['l2_address_y'])
+    all_contributors['l2_address'] = all_contributors.apply(lambda row: row['l2_address_x'] if pd.notna(row['l2_address_x']) else row['l2_address_y'], axis=1)
+    all_contributors = all_contributors.drop(columns=['l2_address_x', 'l2_address_y'])
+    all_contributors = all_contributors[~(all_contributors['email'].isnull() & all_contributors['avatar'].isnull())]
+    all_contributors.drop_duplicates(subset=['email', 'round_id', 'op_amt'], inplace=True)
+
+    missing_records = all_persons_df[~all_persons_df['email'].isin(all_contributors['email'])]
+    st.write("Missing records from all_persons_df in all_contributors:")
+    st.write(missing_records)
     
     #all_persons_df['updated_at'] = pd.to_datetime(all_persons_df['updated_at'], errors='coerce')
     #all_persons_df['status'] = all_persons_df.sort_values('updated_at').groupby('email')['status'].transform('last')
