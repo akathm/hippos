@@ -229,26 +229,38 @@ def main():
         most_recent_status = df.loc[df['updated_at'].idxmax(), status_column]
         st.write(f"### {message.format(status=most_recent_status)}")
 
-    def search_and_display(df1, df2, search_term, columns_to_display, message, status_column='status'):
-        merged_df = pd.concat([df1, df2], ignore_index=True)
-        merged_df['updated_at'] = pd.to_datetime(merged_df['updated_at'], errors='coerce')
-        merged_df['status'].fillna('not started', inplace=True)
-        filtered_df = merged_df[
-            merged_df['name'].str.contains(search_term, case=False, na=False) |
-            merged_df['email'].str.contains(search_term, case=False, na=False) |
-            merged_df['l2_address'].str.contains(search_term, case=False, na=False)
+    def search_and_display(df, search_term, columns_to_display, message, status_column='status'):
+        df['updated_at'] = pd.to_datetime(merged_df['updated_at'], errors='coerce')
+        df['status'].fillna('not started', inplace=True)
+        filtered_df = df[
+            df['name'].str.contains(search_term, case=False, na=False) |
+            df['email'].str.contains(search_term, case=False, na=False) |
+            df['l2_address'].str.contains(search_term, case=False, na=False)
         ]
 
         display_results(filtered_df, columns_to_display, message, status_column)
 
+    all_persons_df = pd.concat([persons_df, inquiries_df], ignore_index=True)
+    all_persons_df['status'] = all_persons_df.sort_values('updated_at').groupby('email')['status'].transform('last')
+    all_persons_df['l2_address'] = all_persons_df.sort_values('updated_at').groupby('email')['l2_address'].transform('last')
+    all_persons_df.loc[(all_persons_df['status'] == 'cleared') & (all_persons_df['updated_at'] < one_year_ago_utc), 'status'] = 'expired'
+    all_contributors = contributors_df.merge(all_persons_df[['email', 'status', 'l2_address']], on='email', how='left')
+    all_contributors['status'] = all_contributors['status'].fillna('not started')
+    all_contributors['l2_address'] = all_contributors['l2_address_x'].combine_first(all_contributors['l2_address_y'])
+    all_contributors['l2_address'] = all_contributors.apply(lambda row: row['l2_address_x'] if pd.notna(row['l2_address_x']) else row['l2_address_y'], axis=1)
+    all_contributors = all_contributors.drop(columns=['l2_address_x', 'l2_address_y'])
+    all_contributors = all_contributors[~(merged_df['email'].isnull() & all_contributors['avatar'].isnull())]
+    all_contributors.drop_duplicates(subset=['email', 'round_id', 'op_amt'], inplace=True)
+
+    
     if option in ['Superchain', 'Vendor']:
         search_and_display(businesses_df, cases_df, search_term, ['name', 'email', 'l2_address', 'updated_at', 'status'], 
                        "This team is {status} for KYB.")
     elif option == 'Contribution Path':
-        if 'avatar' not in persons_df.columns:
-            persons_df['avatar'] = ''
+        if 'avatar' not in all_contributors.columns:
+            all_contributors['avatar'] = ''
         if search_term:
-            search_and_display(persons_df, inquiries_df, search_term, ['avatar', 'email', 'l2_address', 'updated_at', 'status'], 
+            search_and_display(all_contributors, search_term, ['avatar', 'email', 'l2_address', 'updated_at', 'status'], 
                        "This contributor is {status} for KYC.")
     elif option == 'Grants Round':
         form_df['grant_id'] = form_df['grant_id'].astype(str)
@@ -292,7 +304,7 @@ def main():
 
  ##   st.write('test')
 
-    all_persons_df = pd.concat([persons_df, inquiries_df], ignore_index=True)
+    ##all_persons_df = pd.concat([persons_df, inquiries_df], ignore_index=True)
  ##   st.write(all_persons_df)
     
     #all_persons_df['updated_at'] = pd.to_datetime(all_persons_df['updated_at'], errors='coerce')
@@ -305,19 +317,7 @@ def main():
     #most_recent_inquiries = inquiries_df.sort_values('updated_at').drop_duplicates(['email', 'l2_address'], keep='last')
     #final_df = pd.merge(contributors_df, most_recent_inquiries, on=['email', 'l2_address'], how='left', suffixes=('_contributor', '_inquiry'))
 
-    all_persons_df = pd.concat([persons_df, inquiries_df], ignore_index=True)
-    all_persons_df['status'] = all_persons_df.sort_values('updated_at').groupby('email')['status'].transform('last')
-    all_persons_df['l2_address'] = all_persons_df.sort_values('updated_at').groupby('email')['l2_address'].transform('last')
-    all_persons_df.loc[(all_persons_df['status'] == 'cleared') & (all_persons_df['updated_at'] < one_year_ago_utc), 'status'] = 'expired'
 
-    merged_df = contributors_df.merge(all_persons_df[['email', 'status', 'l2_address']], on='email', how='left')
-    merged_df['status'] = merged_df['status'].fillna('not started')
-    merged_df['l2_address'] = merged_df['l2_address_x'].combine_first(merged_df['l2_address_y'])
-    merged_df['l2_address'] = merged_df.apply(lambda row: row['l2_address_x'] if pd.notna(row['l2_address_x']) else row['l2_address_y'], axis=1)
-    merged_df = merged_df.drop(columns=['l2_address_x', 'l2_address_y'])
-    merged_df = merged_df[~(merged_df['email'].isnull() & merged_df['avatar'].isnull())]
-    merged_df.drop_duplicates(subset=['email', 'round_id', 'op_amt'], inplace=True)
-    st.write(merged_df)
 
 ##    all_persons_df = pd.concat([persons_df, inquiries_df], ignore_index=True)
   ##  all_persons_df['status'] = all_persons_df.sort_values('updated_at').groupby('email')['status'].transform('last')
