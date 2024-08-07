@@ -249,7 +249,7 @@ def main():
     all_contributors['l2_address'] = all_contributors['l2_address_x'].combine_first(all_contributors['l2_address_y'])
     all_contributors['l2_address'] = all_contributors.apply(lambda row: row['l2_address_x'] if pd.notna(row['l2_address_x']) else row['l2_address_y'], axis=1)
     all_contributors = all_contributors.drop(columns=['l2_address_x', 'l2_address_y'])
-    all_contributors = all_contributors[~(merged_df['email'].isnull() & all_contributors['avatar'].isnull())]
+    all_contributors = all_contributors[~(all_contributors['email'].isnull() & all_contributors['avatar'].isnull())]
     all_contributors.drop_duplicates(subset=['email', 'round_id', 'op_amt'], inplace=True)
 
     
