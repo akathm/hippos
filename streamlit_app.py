@@ -74,7 +74,7 @@ def process_inquiries(results):
         if status == 'declined':
             status = '🛑 rejected'
         if status == 'needs_review':
-            status = '🟠 needs review'
+            status = '🟠 in review'
 
         records.append({
             'inquiry_id': inquiry_id,
@@ -117,7 +117,7 @@ def process_cases(results):
         if status == 'declined':
             status = '🛑 rejected'
         if status in ['Waiting on UBOs', 'Ready for Review']:
-            status = '🟠 needs review'
+            status = '🟠 in review'
         
         if business_name:
             records.append({
