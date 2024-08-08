@@ -16,8 +16,7 @@ with st.expander('About the Results'):
     st.markdown('**Every project must complete KYC (or KYB for businesses) in order to receive tokens.**')
     st.info('This tool can be used to lookup project status for a specific grant round or workflow. If you do not see the expected grants round here, or you see other unexpected results, please reach out to the Grant Program Manager to correct this issue.')
     st.markdown('**What should I do if a project I\'m talking to is not in *\"cleared\"* status?**')
-    st.warning('If you see a project is in *\"pending\"* status, this means that we are waiting on action from that team. Please direct them to check their emails: one or more responsible parties have been emailed with a link to complete further steps in the KYC process.  \n  \nIf you see an individual is in *\"retry\"*, please ask them to attempt the KYC again (kyc.optimism.io/). They did not submit all required documents or abandoned the process.   \n  \nProjects or individuals in *\"needs review\"* status are being reviewed by our Compliance team. Please allow up to 72 hours for final decision.')
-
+    st.warning('🌕 *\"retry\"* means that the team or individual will need to re-attempt their KYC or KYB. Please direct them to kyc.optimism.io/ or kyb.optimism.io/ to complete this, as they did not submit all of the required materials during their first attempt.  \n  \n 🟠  *\"in review\"* means that this team or individual is waiting on a compliance review. Please let them know it may be up to 72 hours before a final decision is reached.    \n  \n 🛑 *\"rejected\"* teams will not be able to move forward with us. We cannot deliver tokens, and any signed agreements may be null and void. Reach out to compliance@optimism.io if you have any questions or suspect this decision may have been reached in error.')
 
 ## PERSONA-------------------------------------------------------------------
 
