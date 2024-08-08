@@ -109,7 +109,16 @@ def process_cases(results):
         
         if status == 'approved':
             status = 'cleared'
-
+            
+        if status == 'approved':
+            status = '🟢 cleared'
+        if status in ['expired', 'pending', 'created']:
+            status = '🌕 retry'
+        if status == 'declined':
+            status = '🛑 rejected'
+        if status in ['Waiting on UBOs', 'Ready for Review']:
+            status = '🟠 needs review'
+        
         if business_name:
             records.append({
                 'case_id': case_id,
