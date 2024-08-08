@@ -16,7 +16,7 @@ with st.expander('About the Results'):
     st.markdown('**Every project must complete KYC (or KYB for businesses) in order to receive tokens.**')
     st.info('This tool can be used to lookup project status for a specific grant round or workflow. If you do not see the expected grants round here, or you see other unexpected results, please reach out to the Grant Program Manager to correct this issue.')
     st.markdown('**What should I do if a project I\'m talking to is not in *\"cleared\"* status?**')
-    st.warning('🌕 *\"retry\"* means that the team or individual will need to re-attempt their KYC or KYB. Please direct them to kyc.optimism.io/ or kyb.optimism.io/ to complete this, as they did not submit all of the required materials during their first attempt.  \n  \n 🟠  *\"in review\"* means that this team or individual is waiting on a compliance review. Please let them know it may be up to 72 hours before a final decision is reached.    \n  \n 🛑 *\"rejected\"* teams will not be able to move forward with us. We cannot deliver tokens, and any signed agreements may be null and void. Reach out to compliance@optimism.io if you have any questions or suspect this decision may have been reached in error.')
+    st.warning('🌕 *\"retry\"* means that the individual will need to re-attempt their KYC. They did not submit all documents, and should start over at kyc.optimism.io/  \n  \n 🔵 *\"incomplete\"* means we are waiting for 1+ business controllers to finish uploading their documents. Please direct them to check their emails.  \n  \n 🟠  *\"in review\"* means that this team or individual is waiting on a compliance review. Please let them know it may be up to 72 hours before a final decision is reached.    \n  \n 🛑 *\"rejected\"* teams will not be able to move forward with us. We cannot deliver tokens, and any signed agreements may be null and void. Reach out to compliance@optimism.io if you have any questions or suspect this decision may have been reached in error.')
 
 ## PERSONA-------------------------------------------------------------------
 
@@ -111,11 +111,11 @@ def process_cases(results):
             
         if status == 'approved':
             status = '🟢 cleared'
-        if status in ['expired', 'pending', 'created']:
-            status = '🌕 retry'
+        if status in ['expired', 'pending', 'created', 'Waiting on UBOs']:
+            status = '🔵 incomplete'
         if status == 'declined':
             status = '🛑 rejected'
-        if status in ['Waiting on UBOs', 'Ready for Review']:
+        if status in ['Ready for Review']:
             status = '🟠 in review'
         
         if business_name:
