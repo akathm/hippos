@@ -261,12 +261,14 @@ def main():
     all_contributors = all_contributors[~(all_contributors['email'].isnull() & all_contributors['avatar'].isnull())]
     all_contributors.drop_duplicates(subset=['email', 'round_id', 'op_amt'], inplace=True)
 
-    all_businesses = businesses_df.merge(cases_df[['email', 'business_name', 'status', 'l2_address', 'updated_at']], on='email', how='outer')
+    all_businesses = businesses_df.merge(cases_df[['email', 'business_name', 'status', 'l2_address', 'updated_at']], on='email', how='outer', suffixes=('_businesses', '_cases')
+    all_businesses['updated_at'] = all_businesses[['updated_at_businesses', 'updated_at_cases']].max(axis=1)
+    all_businesses = all_businesses.sort_values('updated_at').groupby(['email', 'business_name']).last().reset_index()
+    all_businesses.drop(columns=['updated_at_businesses', 'updated_at_cases'], inplace=True)                                     
     all_businesses['status'] = all_businesses.sort_values('updated_at').groupby('email')['status'].transform('last')
     all_businesses['l2_address'] = all_businesses.sort_values('updated_at').groupby('email')['l2_address'].transform('last')
     all_businesses['updated_at'] = all_businesses.sort_values('updated_at').groupby('email')['updated_at'].transform('last')
     all_businesses.loc[(all_businesses['status'] == 'cleared') & (all_businesses['updated_at'] < one_year_ago_utc), 'status'] = 'expired'
-    all_businesses['status'] = all_businesses['status'].fillna('not started')
     all_businesses = all_businesses[~(all_businesses['email'].isnull())]
     all_businesses.drop_duplicates(subset=['email'], inplace=True)
     
