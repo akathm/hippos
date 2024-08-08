@@ -98,7 +98,7 @@ def process_cases(results):
         fields = attributes.get('fields', {})
         business_name = fields.get('business-name', {}).get('value', '')
         email = fields.get('form-filler-email-address', {}).get('value', np.nan)
-        email = email.lower().strip()
+        email = str(email).lower().strip() if pd.notna(email) else ''
         updated_at = attributes.get('updated-at')
         l2_address = fields.get('l-2-address', {}).get('value', np.nan)
 
