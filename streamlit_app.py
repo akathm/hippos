@@ -248,7 +248,7 @@ def main():
             empty_row[date_column] = ''
             empty_row[status_column] = 'not started'
             df = pd.DataFrame([empty_row])
-            st.write(f"### {message.format(status=status_column)}")
+            st.write(f"### {message.format(status='not clear')}")
 
     def search_and_display(df, search_term, columns_to_display, message, status_column='status', date_column='updated_at'):
         df['updated_at'] = pd.to_datetime(df['updated_at'], errors='coerce')
