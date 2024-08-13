@@ -244,10 +244,6 @@ def main():
             most_recent_status = df.loc[df[date_column].idxmax(), status_column]
             st.write(f"### {message.format(status=most_recent_status)}")
         else:
-            empty_row = {col: '' for col in columns}
-            empty_row[date_column] = ''
-            empty_row[status_column] = 'not started'
-            df = pd.DataFrame([empty_row])
             most_recent_status = 'not started'
 
     st.write(f"### {message.format(status=most_recent_status)}")
