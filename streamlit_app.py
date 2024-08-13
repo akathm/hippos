@@ -240,8 +240,14 @@ def main():
             return
         st.write(df[columns])
 
-        most_recent_status = df.loc[df['updated_at'].idxmax(), status_column]
-        st.write(f"### {message.format(status=most_recent_status)}")
+        if date_column in df.columns and not df[date_column].isnull().all():
+            most_recent_status = df.loc[df[date_column].idxmax(), status_column]
+            st.write(f"### {message.format(status=most_recent_status)}")
+        else:
+            empty_row = {col: '' for col in columns}
+            empty_row[date_column] = ''
+            empty_row[status_column] = 'not started'
+            df = pd.DataFrame([empty_row])
 
     def search_and_display(df, search_term, columns_to_display, message, status_column='status'):
         df['updated_at'] = pd.to_datetime(df['updated_at'], errors='coerce')
