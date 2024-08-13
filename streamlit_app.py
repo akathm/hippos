@@ -234,7 +234,7 @@ def main():
         current_date_utc = datetime.utcnow().replace(tzinfo=timezone.utc)
         one_year_ago_utc = current_date_utc - timedelta(days=365)
 
-    def display_results(df, columns, message, status_column='status'):
+    def display_results(df, columns, message, status_column='status', date_column='updated_at'):
         if df.empty:
             st.write("No matching results found.")
             return
@@ -249,7 +249,7 @@ def main():
             empty_row[status_column] = 'not started'
             df = pd.DataFrame([empty_row])
 
-    def search_and_display(df, search_term, columns_to_display, message, status_column='status'):
+    def search_and_display(df, search_term, columns_to_display, message, status_column='status', date_column='updated_at'):
         df['updated_at'] = pd.to_datetime(df['updated_at'], errors='coerce')
         df['status'] = df['status'].fillna('not started')
         name_search = df.get('name', pd.Series([''] * len(df))).str.contains(search_term, case=False, na=False)
