@@ -245,7 +245,7 @@ def main():
 
     def search_and_display(df, search_term, columns_to_display, message, status_column='status'):
         df['updated_at'] = pd.to_datetime(df['updated_at'], errors='coerce')
-        df['status'].fillna('not started', inplace=True)
+        df['status'] = df['status'].fillna('not started')
         name_search = df.get('name', pd.Series([''] * len(df))).str.contains(search_term, case=False, na=False)
         business_name_search = df.get('business_name', pd.Series([''] * len(df))).str.contains(search_term, case=False, na=False)
         email_search = df['email'].str.contains(search_term, case=False, na=False)
