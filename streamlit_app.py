@@ -129,6 +129,10 @@ def process_cases(results):
             
     return pd.DataFrame(records)
 
+def tf_fetch(typeform_key, url):
+    response = requests.get(url, headers={'Authorization': f'Bearer {typeform_key}'})
+    data = response.json()
+    return response_data
 
 def typeform_to_dataframe(response_data):
     if isinstance(response_data, list):
@@ -224,7 +228,7 @@ def main():
     if refresh_button:
         inquiries_data = fetch_data(api_key, "https://app.withpersona.com/api/v1/inquiries?refresh=true")
         cases_data = fetch_data(api_key, "https://app.withpersona.com/api/v1/cases?refresh=true")
-        form_entries = fetch_data(typeform_key, "https://api.typeform.com/forms/KoPTjofd/responses")
+        form_entries = tf_fetch(typeform_key, "https://api.typeform.com/forms/KoPTjofd/responses")
         typeform_data = typeform_to_dataframe(form_entries)
         st.session_state.inquiries_data = inquiries_data
         st.session_state.cases_data = cases_data
@@ -243,7 +247,7 @@ def main():
             cases_data = st.session_state.cases_data
 
         if 'typeform_data' not in st.session_state:
-            form_entries = fetch_data(typeform_key, "https://api.typeform.com/forms/KoPTjofd/responses")
+            form_entries = tf_fetch(typeform_key, "https://api.typeform.com/forms/KoPTjofd/responses")
             typeform_data = typeform_to_dataframe(form_entries)
             st.session_state.typeform_data = typeform_data
         else:
