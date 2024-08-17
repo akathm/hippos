@@ -154,19 +154,21 @@ def typeform_to_dataframe(response_data):
 
             elif field_type == 'email':
                 if kyb_started:
-                    kyb_emails.append(answer.get('email'))
+                    kyb_emails.append(answer.get('email', np.nan))
                 else:
-                    kyc_emails.append(answer.get('email'))
+                    kyc_emails.append(answer.get('email', np.nan))
 
             elif field_id == 'hhURZ3ovgZ9V' and field_type == 'number' and answer.get('number', 0) > 0:
                 kyb_started = True
 
+        # Ensure that kyc_emails and kyb_emails lists have enough elements, or fill with np.nan
         for i in range(10):
             entry[f'kyc_email{i}'] = kyc_emails[i] if i < len(kyc_emails) else np.nan
         
         for i in range(5):
             entry[f'kyb_email{i}'] = kyb_emails[i] if i < len(kyb_emails) else np.nan
 
+        # Handle l2_address fallback
         if pd.isna(entry['l2_address']) and l2_address_fallback:
             entry['l2_address'] = l2_address_fallback
 
