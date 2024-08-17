@@ -209,7 +209,7 @@ def main():
     typeform_key = st.secrets["typeform"]["api_key"]
 
     url = 'https://api.typeform.com/v1/forms/KoPTjofd/responses'
-    response_data = fetch_data(typeform_key, url)
+    response_data = test_fetch(typeform_key, url)
     typeform_data = typeform_to_dataframe(response_data)
     st.write(typeform_data)
     
