@@ -208,7 +208,7 @@ def main():
     api_key = st.secrets["persona"]["api_key"]
     typeform_key = st.secrets["typeform"]["api_key"]
 
-    url = 'https://api.typeform.com/v1/forms/KoPTjofd/responses'
+    url = 'https://api.typeform.com/forms/KoPTjofd/responses'
     response_data = test_fetch(typeform_key, url)
     typeform_data = typeform_to_dataframe(response_data)
     st.write(typeform_data)
