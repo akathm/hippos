@@ -172,7 +172,7 @@ def typeform_to_dataframe(response_data):
 
         form_entries.append(entry)
 
-    return = pd.DataFrame(form_entries)
+    return pd.DataFrame(form_entries)
 
 
 
