@@ -167,8 +167,8 @@ def typeform_to_dataframe(response_data):
         for i in range(5):
             entry[f'kyb_email{i}'] = kyb_emails[i] if i < len(kyb_emails) else np.nan
 
-        if pd.isna(entry['L2_address']) and l2_address_fallback:
-            entry['L2_address'] = l2_address_fallback
+        if pd.isna(entry['l2_address']) and l2_address_fallback:
+            entry['l2_address'] = l2_address_fallback
 
         form_entries.append(entry)
 
