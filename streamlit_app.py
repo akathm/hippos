@@ -132,7 +132,7 @@ def process_cases(results):
 def test_fetch(api_key, url):
     response = requests.get(url, headers={'Authorization': f'Bearer {api_key}'})
     data = response.json()
-    print("Data fetched from API:", json.dumps(data, indent=4))  # Print the response data
+    st.write("Data fetched from API:", json.dumps(data, indent=4))  # Print the response data
     return data
 
 def typeform_to_dataframe(response_data):
