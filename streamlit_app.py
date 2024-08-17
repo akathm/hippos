@@ -5,6 +5,7 @@ import altair as alt
 import requests
 from io import StringIO
 from datetime import datetime, timedelta, timezone
+import json
 
 st.set_page_config(page_title='KYC Lookup Tool', page_icon='🗝️')
 st.title('🗝️ KYC Lookup Tool')
@@ -128,6 +129,11 @@ def process_cases(results):
             
     return pd.DataFrame(records)
 
+def test_fetch(api_key, url):
+    response = requests.get(url, headers={'Authorization': f'Bearer {api_key}'})
+    data = response.json()
+    print("Data fetched from API:", json.dumps(data, indent=4))  # Print the response data
+    return data
 
 def typeform_to_dataframe(response_data):
     form_entries = []
@@ -201,6 +207,11 @@ def main():
 
     api_key = st.secrets["persona"]["api_key"]
     typeform_key = st.secrets["typeform"]["api_key"]
+
+    url = 'https://api.typeform.com/v1/forms/KoPTjofd/responses'
+    response_data = fetch_data(typeform_key, url)
+    typeform_data = typeform_to_dataframe(response_data)
+    st.write(typeform_data)
     
     access_token = st.secrets["github"]["access_token"]
     owner = "akathm"
