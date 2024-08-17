@@ -129,8 +129,8 @@ def process_cases(results):
             
     return pd.DataFrame(records)
 
-def test_fetch(api_key, url):
-    response = requests.get(url, headers={'Authorization': f'Bearer {api_key}'})
+def test_fetch(typeform_key, url):
+    response = requests.get(url, headers={'Authorization': f'Bearer {typeform_key}'})
     data = response.json()
     st.write("Data fetched from API:", json.dumps(data, indent=4))  # Print the response data
     return data
@@ -206,7 +206,7 @@ def main():
     st.title('KYC Database')
 
     api_key = st.secrets["persona"]["api_key"]
-    typeform_key = st.secrets["typeform"]["api_key"]
+    typeform_key = st.secrets["typeform"]["typeform_key"]
 
     url = 'https://api.typeform.com/forms/KoPTjofd/responses'
     response_data = test_fetch(typeform_key, url)
