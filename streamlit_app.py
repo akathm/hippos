@@ -132,7 +132,7 @@ def process_cases(results):
 def tf_fetch(typeform_key, url):
     response = requests.get(url, headers={'Authorization': f'Bearer {typeform_key}'})
     data = response.json()
-    return response_data
+    return data
 
 def typeform_to_dataframe(response_data):
     if isinstance(response_data, list):
