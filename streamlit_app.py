@@ -131,45 +131,50 @@ def process_cases(results):
 
 
 def typeform_to_dataframe(response_data):
+    if isinstance(response_data, list):
+        items = response_data
+    elif isinstance(response_data, dict):
+        items = response_data.get('items', [])
+    else:
+        raise ValueError("Unexpected response_data format")
+
     form_entries = []
 
-    for item in response_data.get('items', []):
+    for item in items:
         entry = {
-            'form_id': item.get('response_id'),
-            'project_id': item['hidden'].get('project_id', np.nan),
-            'grant_id': item['hidden'].get('grant_id', np.nan),
-            'l2_address': item['hidden'].get('l2_address', np.nan)
+            'form_id': item.get('response_id', np.nan),
+            'project_id': item.get('hidden', {}).get('project_id', np.nan),
+            'grant_id': item.get('hidden', {}).get('grant_id', np.nan),
+            'l2_address': item.get('hidden', {}).get('l2_address', np.nan)
         }
-        
+
         kyc_emails = []
         kyb_emails = []
         kyb_started = False
         l2_address_fallback = None
-        
+
         for answer in item.get('answers', []):
-            field_id = answer['field']['id']
-            field_type = answer['field']['type']
+            field_id = answer.get('field', {}).get('id')
+            field_type = answer.get('field', {}).get('type')
 
             if field_id == 'ECV4jrkAuE1D' and field_type == 'short_text':
                 l2_address_fallback = answer.get('text', np.nan)
 
             elif field_type == 'email':
                 if kyb_started:
-                    kyb_emails.append(answer.get('email', np.nan))
+                    kyb_emails.append(answer.get('email'))
                 else:
-                    kyc_emails.append(answer.get('email', np.nan))
+                    kyc_emails.append(answer.get('email'))
 
             elif field_id == 'hhURZ3ovgZ9V' and field_type == 'number' and answer.get('number', 0) > 0:
                 kyb_started = True
 
-        # Ensure that kyc_emails and kyb_emails lists have enough elements, or fill with np.nan
         for i in range(10):
             entry[f'kyc_email{i}'] = kyc_emails[i] if i < len(kyc_emails) else np.nan
-        
+
         for i in range(5):
             entry[f'kyb_email{i}'] = kyb_emails[i] if i < len(kyb_emails) else np.nan
 
-        # Handle l2_address fallback
         if pd.isna(entry['l2_address']) and l2_address_fallback:
             entry['l2_address'] = l2_address_fallback
 
