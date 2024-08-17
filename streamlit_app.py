@@ -179,8 +179,6 @@ def typeform_to_dataframe(response_data):
 response_data = {
     "items": [
         {
-    "items": [
-        {
             "landing_id": "ejumz2xqu1ukog354o4ejumzlwpgxxqu",
             "token": "ejumz2xqu1ukog354o4ejumzlwpgxxqu",
             "response_id": "ejumz2xqu1ukog354o4ejumzlwpgxxqu",
