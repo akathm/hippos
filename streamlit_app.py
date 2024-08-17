@@ -129,11 +129,6 @@ def process_cases(results):
             
     return pd.DataFrame(records)
 
-def test_fetch(typeform_key, url):
-    response = requests.get(url, headers={'Authorization': f'Bearer {typeform_key}'})
-    data = response.json()
-    st.write("Data fetched from API:", json.dumps(data, indent=4))  # Print the response data
-    return data
 
 def typeform_to_dataframe(response_data):
     form_entries = []
@@ -207,11 +202,6 @@ def main():
 
     api_key = st.secrets["persona"]["api_key"]
     typeform_key = st.secrets["typeform"]["typeform_key"]
-
-    url = 'https://api.typeform.com/forms/KoPTjofd/responses'
-    response_data = test_fetch(typeform_key, url)
-    typeform_data = typeform_to_dataframe(response_data)
-    st.write(typeform_data)
     
     access_token = st.secrets["github"]["access_token"]
     owner = "akathm"
