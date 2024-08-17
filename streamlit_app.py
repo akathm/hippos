@@ -233,7 +233,8 @@ def main():
             st.session_state.cases_data = cases_data
         else:
             cases_data = st.session_state.cases_data
-        if st.session_state.typeform_data is None:
+
+        if 'typeform_data' not in st.session_state:
             form_entries = fetch_data(typeform_key, "https://api.typeform.com/forms/KoPTjofd/responses")
             typeform_data = typeform_to_dataframe(form_entries)
             st.session_state.typeform_data = typeform_data
