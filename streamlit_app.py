@@ -172,8 +172,8 @@ def typeform_to_dataframe(response_data):
 
         form_entries.append(entry)
 
-    df = pd.DataFrame(form_entries)
-    return df
+    return = pd.DataFrame(form_entries)
+
 
 
 ## LEGACY DATA -------------------------------------------------------------------
@@ -198,6 +198,8 @@ def main():
     st.title('KYC Database')
 
     api_key = st.secrets["persona"]["api_key"]
+    typeform_key = st.secrets["typeform"]["api_key"]
+    
     access_token = st.secrets["github"]["access_token"]
     owner = "akathm"
     repo = "the-trojans"
@@ -206,14 +208,19 @@ def main():
         st.session_state.inquiries_data = None
     if 'cases_data' not in st.session_state:
         st.session_state.cases_data = None
+    if 'form_data' not in st.session_state:
+        st.session_state.form_data = None
 
     refresh_button = st.button("Refresh")
 
     if refresh_button:
         inquiries_data = fetch_data(api_key, "https://app.withpersona.com/api/v1/inquiries?refresh=true")
         cases_data = fetch_data(api_key, "https://app.withpersona.com/api/v1/cases?refresh=true")
+        form_entries = fetch_data(typeform_key, "https://api.typeform.com/forms/{}/responses")
+        typeform_data = typeform_to_dataframe(form_entries)
         st.session_state.inquiries_data = inquiries_data
         st.session_state.cases_data = cases_data
+        st.session_state.typeform_data = typeform_data
     else:
         if st.session_state.inquiries_data is None:
             inquiries_data = fetch_data(api_key, "https://app.withpersona.com/api/v1/inquiries")
@@ -226,6 +233,15 @@ def main():
             st.session_state.cases_data = cases_data
         else:
             cases_data = st.session_state.cases_data
+        if st.session_state.typeform_data is None:
+            typeform_data_raw = fetch_data(typeform_api_key, "https://api.typeform.com/forms/YOUR_FORM_ID/responses")
+            typeform_data = typeform_to_dataframe(typeform_data_raw)
+            st.session_state.typeform_data = typeform_data
+        else:
+            typeform_data = st.session_state.typeform_data
+
+    st.write('test')
+    st.write(typeform_data)
 
     option = st.sidebar.selectbox('Select an Option', ['Contribution Path', 'Superchain', 'Vendor', 'Grants Round'])
     search_term = st.sidebar.text_input('Enter search term (name, l2_address, or email)')
