@@ -221,6 +221,7 @@ def main():
         st.session_state.cases_data = None
     if 'typeform_data' not in st.session_state:
         st.session_state.form_data = None
+        st.session_state.typeform_data = None
 
     refresh_button = st.button("Refresh")
     if refresh_button:
