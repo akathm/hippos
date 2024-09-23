@@ -241,6 +241,11 @@ def main():
     contributors_df = fetch_csv(owner, repo, "grants.contributors.csv", access_token)
     projects_df = fetch_csv(owner, repo, "grants.projects.csv", access_token)
     form_df = fetch_csv(owner, repo, "legacy.form.csv", access_token)
+    kyc_columns = [f'kyc_email{i}' for i in range(10)]
+    kyc_emails = typeform_data.melt(id_vars=['project_id'], value_vars=kyc_columns, var_name='kyc_email_num', value_name='kyc_email')
+    kyc_emails['kyc_email'] = kyc_emails['kyc_email'].fillna(kyc_emails[kyc_emails['kyc_email_num'] == 'kyc_email1']['kyc_email'])
+    kyc_emails['status'] = kyc_emails['kyc_email'].apply(get_kyc_status)
+    kyc_emails = kyc_emails[kyc_emails['kyc_email'].notna()]
 
     typeform_data['merge_key'] = typeform_data[['grant_id', 'project_id', 'kyc_email0']].bfill(axis=1).iloc[:, 0]
     projects_df['merge_key'] = projects_df[['grant_id', 'project_id', 'kyc_email0']].bfill(axis=1).iloc[:, 0]
