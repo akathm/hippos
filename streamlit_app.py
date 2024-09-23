@@ -253,10 +253,10 @@ def main():
         else:
             typeform_data = st.session_state.typeform_data
 
-##    st.write('test')
-##    st.write(typeform_data)
+    st.write('test')
+    st.write(typeform_data)
 
-    option = st.sidebar.selectbox('Select an Option', ['Contribution Path', 'Superchain', 'Vendor', 'Grants Round'])
+    option = st.sidebar.selectbox('Select an Option', ['Superchain', 'Vendor', 'Contribution Path', 'Grants Round'])
     search_term = st.sidebar.text_input('Enter search term (name, l2_address, or email)')
 
     inquiries_df = process_inquiries(inquiries_data)
