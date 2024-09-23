@@ -142,14 +142,21 @@ def typeform_to_dataframe(response_data):
     else:
         raise ValueError("Unexpected response_data format")
 
-    form_entries = []
+    form_entries = {}
 
     for item in items:
+        grant_id = item.get('hidden', {}).get('grant_id', np.nan)
+        submitted_at = item.get('submitted_at')
+
+        if pd.isna(grant_id):
+            continue
+
         entry = {
             'form_id': item.get('response_id', np.nan),
             'project_id': item.get('hidden', {}).get('project_id', np.nan),
-            'grant_id': item.get('hidden', {}).get('grant_id', np.nan),
-            'l2_address': item.get('hidden', {}).get('l2_address', np.nan)
+            'grant_id': grant_id,
+            'l2_address': item.get('hidden', {}).get('l2_address', np.nan),
+            'updated_at': submitted_at
         }
 
         kyc_emails = []
@@ -182,9 +189,13 @@ def typeform_to_dataframe(response_data):
         if pd.isna(entry['l2_address']) and l2_address_fallback:
             entry['l2_address'] = l2_address_fallback
 
-        form_entries.append(entry)
+        if grant_id in form_entries:
+            if submitted_at > form_entries[grant_id]['submitted_at']:
+                form_entries[grant_id] = entry
+        else:
+            form_entries[grant_id] = entry
 
-    return pd.DataFrame(form_entries)
+    return pd.DataFrame(form_entries.values())
 
 
 
