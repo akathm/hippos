@@ -275,7 +275,49 @@ def main():
     all_businesses = all_businesses[~(all_businesses['email'].isnull())]
     all_businesses.drop_duplicates(subset=['email', 'business_name'], inplace=True)
     
+    def get_kyc_status(email):
+        if pd.isna(email):
+            return 'not started'
+        matched_inquiry = all_contributors[all_contributors['email'] == email]
+        return matched_inquiry.iloc[0]['status'] if not matched_inquiry.empty else 'not started'
 
+    def get_kyb_status(email):
+        if pd.isna(email):
+            return 'not started'
+        matched_case = all_businesses[all_businesses['email'] == email]
+        return matched_case.iloc[0]['status'] if not matched_case.empty else 'not started'
+
+    option = st.sidebar.selectbox('Select an Option', ['Superchain', 'Vendor', 'Contribution Path', 'Grants Round'])
+    search_term = st.sidebar.text_input('Enter search term (name, l2_address, or email)')
+
+    if option in ['Superchain', 'Vendor']:
+        search_and_display(all_businesses, search_term, ['business_name', 'email', 'l2_address', 'updated_at', 'status'], 
+                           "This team is {status} for KYB.", status_column='status', date_column='updated_at')
+    elif option == 'Contribution Path':
+        if search_term:
+            search_and_display(all_contributors, search_term, ['avatar', 'email', 'l2_address', 'updated_at', 'status'], 
+                               "This contributor is {status} for KYC.", status_column='status', date_column='updated_at')
+    elif option == 'Grants Round':
+        if form_entries.empty:
+            st.write("Grants round not started")
+        else:
+            kyc_columns = [f'kyc_email{i}' for i in range(10)]
+            kyb_columns = [f'kyb_email{i}' for i in range(5)]
+            
+            kyc_emails = typeform_data.melt(id_vars=['project_id'], value_vars=kyc_columns, var_name='kyc_email_num', value_name='kyc_email')
+            kyb_emails = typeform_data.melt(id_vars=['project_id'], value_vars=kyb_columns, var_name='kyb_email_num', value_name='kyb_email')
+
+            kyc_emails['status'] = kyc_emails['kyc_email'].apply(get_kyc_status)
+            kyb_emails['status'] = kyb_emails['kyb_email'].apply(get_kyb_status)
+
+            kyc_emails = kyc_emails[kyc_emails['kyc_email'].notna()]
+            kyb_emails = kyb_emails[kyb_emails['kyb_email'].notna()]
+
+            st.write("###Status for Responsible Individuals (KYC)")
+            st.write(kyc_emails[['project_id', 'kyc_email', 'status']])
+
+            st.write("###Status for Responsible Businesses (KYB)")
+            st.write(kyb_emails[['project_id', 'kyb_email', 'status']])
 
 
 
