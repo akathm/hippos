@@ -283,9 +283,6 @@ def main():
     projects_df = fetch_csv(owner, repo, projects_path, access_token)
     persons_df = fetch_csv(owner, repo, persons_path, access_token)
     businesses_df = fetch_csv(owner, repo, businesses_path, access_token)
-    form_df = fetch_csv(owner, repo, form_path, access_token)
-    form_df['updated_at'] = pd.to_datetime(form_df['updated_at'])
-    form_df['updated_at'] = form_df['updated_at'].dt.tz_localize('UTC')
 
     if persons_df is not None and 'updated_at' in persons_df.columns:
         try:
@@ -315,9 +312,6 @@ def main():
         current_date_utc = datetime.utcnow().replace(tzinfo=timezone.utc)
         one_year_ago_utc = current_date_utc - timedelta(days=365)
 
-    if form_df is not None: ## and typeform_df is not None:
-        current_date_utc = datetime.utcnow().replace(tzinfo=timezone.utc)
-        one_year_ago_utc = current_date_utc - timedelta(days=365)
 
     def display_results(df, columns, message, status_column='status', date_column='updated_at'):
         if df.empty:
@@ -380,42 +374,45 @@ def main():
             search_and_display(all_contributors, search_term, ['avatar', 'email', 'l2_address', 'updated_at', 'status'], 
                        "This contributor is {status} for KYC.")
     elif option == 'Grants Round':
-        form_df['grant_id'] = form_df['grant_id'].astype(str)
+        typeform_data['grant_id'] = typeform_data['grant_id'].astype(str)
         projects_df['grant_id'] = projects_df['grant_id'].astype(str)
-        
-        ##merged_email = pd.merge(form_df, projects_df, on='email', how='outer', indicator=True, suffixes=('_form', '_proj'))
-        ##merged_l2 = pd.merge(form_df, projects_df, on='l2_address', how='outer', indicator=True, suffixes=('_form', '_proj'))
-        ##merged_all = pd.concat([merged_email, merged_l2], ignore_index=True).drop_duplicates()
-        merged_email = pd.merge(form_df, projects_df, on='email', how='outer', suffixes=('_form', '_proj'))
-        merged_l2 = pd.merge(form_df, projects_df, on='l2_address', how='outer', suffixes=('_form', '_proj'))
-        merged_all = pd.concat([merged_email, merged_l2], ignore_index=True).drop_duplicates()
 
-        merged_all['l2_address'] = merged_all['l2_address_form'].combine_first(merged_all['l2_address_proj'])
-        merged_all.drop(columns=['l2_address_form', 'l2_address_proj'], inplace=True)
-        ##merged_all['status'] = pd.to_numeric(merged_all['status'], errors='coerce')
-        ##merged_all['status'] = merged_all['status_form'].combine_first(merged_all['status_proj'])
+        merged_df = projects_df.merge(typeform_data, on='grant_id', how='left')
     
-        required_columns = ['project_name', 'email', 'l2_address', 'round_id', 'grant_id', 'status']
-        for col in required_columns:
-            if col not in merged_all.columns:
-                merged_all[col] = ''
-
-        merged_all = merged_all[~(merged_all['email'].isnull() & merged_all['l2_address'].isnull())]
+        kyc_emails = merged_df[merged_df['kyc_email0'].notnull()]['kyc_email0'].unique()
+        kyb_emails = merged_df[merged_df['kyb_email0'].notnull()]['kyb_email0'].unique()
     
-        if search_term:
-            filtered_df = merged_all[
-                merged_df['name'].str.contains(search_term, case=False, na=False) |
-                merged_df['email'].str.contains(search_term, case=False, na=False) |
-                merged_df['l2_address'].str.contains(search_term, case=False, na=False)
-            ]
+        st.write("KYC emails")
+        kyc_results = []
+        for email in kyc_emails:
+            status = all_contributors.loc[all_contributors['email'] == email, 'status'].values
+            kyc_results.append({
+                'email': email,
+                'status': status[0] if status.size > 0 else 'not started'
+            })
+        kyc_df = pd.DataFrame(kyc_results)
+        st.write(kyc_df)
     
+        st.write("KYB emails")
+        kyb_results = []
+        for email in kyb_emails:
+            status = all_businesses.loc[all_businesses['email'] == email, 'status'].values
+            kyb_results.append({
+                'email': email,
+                'status': status[0] if status.size > 0 else 'not started'
+            })
+        kyb_df = pd.DataFrame(kyb_results)
+        st.write(kyb_df)
+    
+        if kyc_df.empty and kyb_df.empty:
+            st.write("No KYC or KYB emails found.")
         else:
-            filtered_df = pd.DataFrame()
             st.write('*Use the search tool on the left hand side to input an L2 address, project name, or admin email* 💬')
+
             
 
-        display_results(filtered_df, ['project_name', 'email', 'l2_address', 'round_id', 'grant_id', 'status'], 
-                "This project is {status} for KYC.")
+        ##display_results(filtered_df, ['project_name', 'email', 'l2_address', 'round_id', 'grant_id', 'status'], 
+          ##      "This project is {status} for KYC.")
 
 ## TESTING--------------------------------------------------
     
