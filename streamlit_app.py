@@ -211,6 +211,7 @@ def main():
 
     api_key = st.secrets["persona"]["api_key"]
     typeform_key = st.secrets["typeform"]["typeform_key"]
+    
     access_token = st.secrets["github"]["access_token"]
     owner = "akathm"
     repo = "the-trojans"
@@ -221,9 +222,9 @@ def main():
         st.session_state.cases_data = None
     if 'typeform_data' not in st.session_state:
         st.session_state.form_data = None
-        st.session_state.typeform_data = None
 
     refresh_button = st.button("Refresh")
+
     if refresh_button:
         inquiries_data = fetch_data(api_key, "https://app.withpersona.com/api/v1/inquiries?refresh=true")
         cases_data = fetch_data(api_key, "https://app.withpersona.com/api/v1/cases?refresh=true")
@@ -233,25 +234,107 @@ def main():
         st.session_state.cases_data = cases_data
         st.session_state.typeform_data = typeform_data
     else:
-        inquiries_data = st.session_state.inquiries_data
-        cases_data = st.session_state.cases_data
-        typeform_data = st.session_state.typeform_data
+        if st.session_state.inquiries_data is None:
+            inquiries_data = fetch_data(api_key, "https://app.withpersona.com/api/v1/inquiries")
+            st.session_state.inquiries_data = inquiries_data
+        else:
+            inquiries_data = st.session_state.inquiries_data
+
+        if st.session_state.cases_data is None:
+            cases_data = fetch_data(api_key, "https://app.withpersona.com/api/v1/cases")
+            st.session_state.cases_data = cases_data
+        else:
+            cases_data = st.session_state.cases_data
+
+        if 'typeform_data' not in st.session_state:
+            form_entries = tf_fetch(typeform_key, "https://api.typeform.com/forms/KoPTjofd/responses")
+            typeform_data = typeform_to_dataframe(form_entries)
+            st.session_state.typeform_data = typeform_data
+        else:
+            typeform_data = st.session_state.typeform_data
+
+##    st.write('test')
+##    st.write(typeform_data)
+
+    option = st.sidebar.selectbox('Select an Option', ['Contribution Path', 'Superchain', 'Vendor', 'Grants Round'])
+    search_term = st.sidebar.text_input('Enter search term (name, l2_address, or email)')
 
     inquiries_df = process_inquiries(inquiries_data)
     cases_df = process_cases(cases_data)
-    contributors_df = fetch_csv(owner, repo, "grants.contributors.csv", access_token)
-    projects_df = fetch_csv(owner, repo, "grants.projects.csv", access_token)
-    form_df = fetch_csv(owner, repo, "legacy.form.csv", access_token)
-    kyc_columns = [f'kyc_email{i}' for i in range(10)]
-    kyc_emails = typeform_data.melt(id_vars=['project_id'], value_vars=kyc_columns, var_name='kyc_email_num', value_name='kyc_email')
-    kyc_emails['kyc_email'] = kyc_emails['kyc_email'].fillna(kyc_emails[kyc_emails['kyc_email_num'] == 'kyc_email1']['kyc_email'])
-    kyc_emails['status'] = kyc_emails['kyc_email'].apply(get_kyc_status)
-    kyc_emails = kyc_emails[kyc_emails['kyc_email'].notna()]
 
-    typeform_data['merge_key'] = typeform_data[['grant_id', 'project_id', 'kyc_email0']].bfill(axis=1).iloc[:, 0]
-    projects_df['merge_key'] = projects_df[['grant_id', 'project_id', 'kyc_email0']].bfill(axis=1).iloc[:, 0]
-    final_merged = typeform_data.merge(projects_df, on='merge_key', how='left')
-    final_merged.drop(columns=['merge_key'], inplace=True)
+    contributors_path = "grants.contributors.csv"
+    projects_path = "grants.projects.csv"
+    persons_path = "legacy.persons.csv"
+    businesses_path = "legacy.businesses.csv"
+    form_path = "legacy.form.csv"
+
+    contributors_df = fetch_csv(owner, repo, contributors_path, access_token)
+    projects_df = fetch_csv(owner, repo, projects_path, access_token)
+    persons_df = fetch_csv(owner, repo, persons_path, access_token)
+    businesses_df = fetch_csv(owner, repo, businesses_path, access_token)
+    form_df = fetch_csv(owner, repo, form_path, access_token)
+    form_df['updated_at'] = pd.to_datetime(form_df['updated_at'])
+    form_df['updated_at'] = form_df['updated_at'].dt.tz_localize('UTC')
+
+    if persons_df is not None and 'updated_at' in persons_df.columns:
+        try:
+            persons_df['updated_at'] = pd.to_datetime(persons_df['updated_at'], utc=True)
+        except Exception as e:
+            st.error(f"Error converting 'updated_at' to datetime: {e}")
+            st.stop()
+
+    if businesses_df is not None and 'updated_at' in businesses_df.columns:
+        try:
+            businesses_df['updated_at'] = pd.to_datetime(businesses_df['updated_at'], utc=True)
+        except Exception as e:
+            st.error(f"Error converting 'updated_at' to datetime: {e}")
+            st.stop()
+
+    if inquiries_df is not None and 'updated_at' in inquiries_df.columns:
+        inquiries_df['updated_at'] = pd.to_datetime(inquiries_df['updated_at'], utc=True)
+
+    if cases_df is not None and 'updated_at' in cases_df.columns:
+        cases_df['updated_at'] = pd.to_datetime(cases_df['updated_at'], utc=True)
+
+    if persons_df is not None and inquiries_df is not None:
+        current_date_utc = datetime.utcnow().replace(tzinfo=timezone.utc)
+        one_year_ago_utc = current_date_utc - timedelta(days=365)
+
+    if businesses_df is not None and cases_df is not None:
+        current_date_utc = datetime.utcnow().replace(tzinfo=timezone.utc)
+        one_year_ago_utc = current_date_utc - timedelta(days=365)
+
+    if form_df is not None: ## and typeform_df is not None:
+        current_date_utc = datetime.utcnow().replace(tzinfo=timezone.utc)
+        one_year_ago_utc = current_date_utc - timedelta(days=365)
+
+    def display_results(df, columns, message, status_column='status', date_column='updated_at'):
+        if df.empty:
+            st.write("No matching results found.")
+            return
+        st.write(df[columns])
+
+        if date_column in df.columns and not df[date_column].isnull().all():
+            most_recent_status = df.loc[df[date_column].idxmax(), status_column]
+            st.write(f"### {message.format(status=most_recent_status)}")
+        else:
+            empty_row = {col: '' for col in columns}
+            empty_row[date_column] = ''
+            empty_row[status_column] = 'not started'
+            df = pd.DataFrame([empty_row])
+            st.write(f"### {message.format(status='not clear')}")
+
+    def search_and_display(df, search_term, columns_to_display, message, status_column='status', date_column='updated_at'):
+        df['updated_at'] = pd.to_datetime(df['updated_at'], errors='coerce')
+        df['status'] = df['status'].fillna('not started')
+        name_search = df.get('name', pd.Series([''] * len(df))).str.contains(search_term, case=False, na=False)
+        business_name_search = df.get('business_name', pd.Series([''] * len(df))).str.contains(search_term, case=False, na=False)
+        email_search = df['email'].str.contains(search_term, case=False, na=False)
+        l2_address_search = df['l2_address'].str.contains(search_term, case=False, na=False)
+        filtered_df = df[name_search | business_name_search | email_search | l2_address_search]
+
+        display_results(filtered_df, columns_to_display, message, status_column)
+        
 
     all_persons_df = pd.concat([persons_df, inquiries_df], ignore_index=True)
     all_persons_df['status'] = all_persons_df.sort_values('updated_at').groupby('email')['status'].transform('last')
@@ -276,51 +359,52 @@ def main():
     all_businesses = all_businesses[~(all_businesses['email'].isnull())]
     all_businesses.drop_duplicates(subset=['email', 'business_name'], inplace=True)
     
-    def get_kyc_status(email):
-        if pd.isna(email):
-            return 'not started'
-        matched_inquiry = all_contributors[all_contributors['email'] == email]
-        return matched_inquiry.iloc[0]['status'] if not matched_inquiry.empty else 'not started'
-
-    def get_kyb_status(email):
-        if pd.isna(email):
-            return 'not started'
-        matched_case = all_businesses[all_businesses['email'] == email]
-        return matched_case.iloc[0]['status'] if not matched_case.empty else 'not started'
-
-    option = st.sidebar.selectbox('Select an Option', ['Superchain', 'Vendor', 'Contribution Path', 'Grants Round'])
-    search_term = st.sidebar.text_input('Enter search term (name, l2_address, or email)')
-
     if option in ['Superchain', 'Vendor']:
         search_and_display(all_businesses, search_term, ['business_name', 'email', 'l2_address', 'updated_at', 'status'], 
-                           "This team is {status} for KYB.", status_column='status', date_column='updated_at')
+                       "This team is {status} for KYB.")
     elif option == 'Contribution Path':
+        if 'avatar' not in all_contributors.columns:
+            all_contributors['avatar'] = ''
         if search_term:
             search_and_display(all_contributors, search_term, ['avatar', 'email', 'l2_address', 'updated_at', 'status'], 
-                               "This contributor is {status} for KYC.", status_column='status', date_column='updated_at')
+                       "This contributor is {status} for KYC.")
     elif option == 'Grants Round':
-        if form_entries.empty:
-            st.write("Grants round not started")
+        form_df['grant_id'] = form_df['grant_id'].astype(str)
+        projects_df['grant_id'] = projects_df['grant_id'].astype(str)
+        
+        ##merged_email = pd.merge(form_df, projects_df, on='email', how='outer', indicator=True, suffixes=('_form', '_proj'))
+        ##merged_l2 = pd.merge(form_df, projects_df, on='l2_address', how='outer', indicator=True, suffixes=('_form', '_proj'))
+        ##merged_all = pd.concat([merged_email, merged_l2], ignore_index=True).drop_duplicates()
+        merged_email = pd.merge(form_df, projects_df, on='email', how='outer', suffixes=('_form', '_proj'))
+        merged_l2 = pd.merge(form_df, projects_df, on='l2_address', how='outer', suffixes=('_form', '_proj'))
+        merged_all = pd.concat([merged_email, merged_l2], ignore_index=True).drop_duplicates()
+
+        merged_all['l2_address'] = merged_all['l2_address_form'].combine_first(merged_all['l2_address_proj'])
+        merged_all.drop(columns=['l2_address_form', 'l2_address_proj'], inplace=True)
+        ##merged_all['status'] = pd.to_numeric(merged_all['status'], errors='coerce')
+        ##merged_all['status'] = merged_all['status_form'].combine_first(merged_all['status_proj'])
+    
+        required_columns = ['project_name', 'email', 'l2_address', 'round_id', 'grant_id', 'status']
+        for col in required_columns:
+            if col not in merged_all.columns:
+                merged_all[col] = ''
+
+        merged_all = merged_all[~(merged_all['email'].isnull() & merged_all['l2_address'].isnull())]
+    
+        if search_term:
+            filtered_df = merged_all[
+                merged_df['name'].str.contains(search_term, case=False, na=False) |
+                merged_df['email'].str.contains(search_term, case=False, na=False) |
+                merged_df['l2_address'].str.contains(search_term, case=False, na=False)
+            ]
+    
         else:
-            kyc_columns = [f'kyc_email{i}' for i in range(10)]
-            kyb_columns = [f'kyb_email{i}' for i in range(5)]
+            filtered_df = pd.DataFrame()
+            st.write('*Use the search tool on the left hand side to input an L2 address, project name, or admin email* 💬')
             
-            kyc_emails = typeform_data.melt(id_vars=['project_id'], value_vars=kyc_columns, var_name='kyc_email_num', value_name='kyc_email')
-            kyb_emails = typeform_data.melt(id_vars=['project_id'], value_vars=kyb_columns, var_name='kyb_email_num', value_name='kyb_email')
 
-            kyc_emails['status'] = kyc_emails['kyc_email'].apply(get_kyc_status)
-            kyb_emails['status'] = kyb_emails['kyb_email'].apply(get_kyb_status)
-
-            kyc_emails = kyc_emails[kyc_emails['kyc_email'].notna()]
-            kyb_emails = kyb_emails[kyb_emails['kyb_email'].notna()]
-
-            st.write("###Status for Responsible Individuals (KYC)")
-            st.write(kyc_emails[['project_id', 'kyc_email', 'status']])
-
-            st.write("###Status for Responsible Businesses (KYB)")
-            st.write(kyb_emails[['project_id', 'kyb_email', 'status']])
-
-
+        display_results(filtered_df, ['project_name', 'email', 'l2_address', 'round_id', 'grant_id', 'status'], 
+                "This project is {status} for KYC.")
 
 ## TESTING--------------------------------------------------
     
