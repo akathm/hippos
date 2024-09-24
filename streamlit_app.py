@@ -146,7 +146,7 @@ def typeform_to_dataframe(response_data):
 
     for item in items:
         grant_id = item.get('hidden', {}).get('grant_id', np.nan)
-        updated_at = item.get('updated_at')
+        updated_at = item.get('submitted)at', np.nan)
 
         if pd.isna(grant_id):
             continue
@@ -156,7 +156,7 @@ def typeform_to_dataframe(response_data):
             'project_id': item.get('hidden', {}).get('project_id', np.nan),
             'grant_id': grant_id,
             'l2_address': item.get('hidden', {}).get('l2_address', np.nan),
-            'updated_at': submitted_at
+            'updated_at': updated_at
         }
 
         kyc_emails = []
