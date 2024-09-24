@@ -409,15 +409,13 @@ def main():
                 overall_status = 'incomplete'
     
         if search_term:
-            # Correct placeholder reference for overall_status
             search_and_display(merged_df, search_term, ['project_name', 'email', 'l2_address', 'updated_at'], 
                                f"{merged_df['project_name'].iloc[0]} is {overall_status} for KYC.")
-            
-            # Move the following code outside the search_and_display call
+    
             if not kyc_df.empty:
                 st.write("KYC emails")
                 st.write(kyc_df)
-            
+    
             if not kyb_df.empty:
                 st.write("KYB emails")
                 st.write(kyb_df)
