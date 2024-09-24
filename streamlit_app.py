@@ -384,7 +384,7 @@ def main():
         if search_term == '':
             st.write('*Use the search tool on the left hand side to input an L2 address, project name, or admin email* 💬')
         else:
-            if merged_df['grant_id'].astype(str).eq(search_term).any()
+            if merged_df['grant_id'].astype(str).eq(search_term).any():
                 filtered_projects = merged_df[merged_df['grant_id'] == search_term]
             else:
                 email_search = merged_df['email'].str.contains(search_term, case=False, na=False)
