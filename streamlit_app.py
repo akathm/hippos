@@ -408,56 +408,21 @@ def main():
             else:
                 overall_status = 'incomplete'
     
-        if search_term == '':
-            st.write('*Use the search tool on the left-hand side to input an L2 address, project name, or admin email* 💬')
+        if search_term:
+            # Correct placeholder reference for overall_status
+            search_and_display(merged_df, search_term, ['project_name', 'email', 'l2_address', 'updated_at'], 
+                               f"{merged_df['project_name'].iloc[0]} is {overall_status} for KYC.")
+            
+            # Move the following code outside the search_and_display call
+            if not kyc_df.empty:
+                st.write("KYC emails")
+                st.write(kyc_df)
+            
+            if not kyb_df.empty:
+                st.write("KYB emails")
+                st.write(kyb_df)
         else:
-            # Check if search term matches grant_id
-            if merged_df['grant_id'].astype(str).eq(search_term).any():
-                filtered_df = merged_df[merged_df['grant_id'].astype(str) == search_term]
-                st.write(filtered_df)
-    
-                # Display KYC and KYB data for the matching grant
-                if not kyc_df.empty:
-                    st.write("KYC emails")
-                    st.write(kyc_df)
-    
-                if not kyb_df.empty:
-                    st.write("KYB emails")
-                    st.write(kyb_df)
-    
-                # Show the overall status message
-                st.write(f"{filtered_df['project_name'].values[0]} is {overall_status} for KYC.")  # Adjust according to your column name
-            else:
-                # Check if search term matches email, l2_address, or project_name
-                if merged_df['email'].str.contains(search_term, case=False, na=False).any() or \
-                   merged_df['l2_address'].str.contains(search_term, case=False, na=False).any() or \
-                   merged_df['project_name'].str.contains(search_term, case=False, na=False).any():
-    
-                    # Filter the DataFrame for email, l2_address, or project_name
-                    filtered_df = merged_df[
-                        merged_df['email'].str.contains(search_term, case=False, na=False) |
-                        merged_df['l2_address'].str.contains(search_term, case=False, na=False) |
-                        merged_df['project_name'].str.contains(search_term, case=False, na=False)
-                    ]
-                    
-                    st.write(filtered_df)
-    
-                    # Display KYC and KYB data for each row in filtered_df
-                    for _, row in filtered_df.iterrows():
-                        project_kyc_df = kyc_df[kyc_df['email'].isin(kyc_emails)]
-                        project_kyb_df = kyb_df[kyb_df['email'].isin(kyb_emails)]
-                        
-                        if not project_kyc_df.empty:
-                            st.write("KYC emails for project:", row['project_name'])  # Adjust according to your column name
-                            st.write(project_kyc_df)
-    
-                        if not project_kyb_df.empty:
-                            st.write("KYB emails for project:", row['project_name'])  # Adjust according to your column name
-                            st.write(project_kyb_df)
-    
-                        # Show the overall status message for the project
-                        st.write(f"{row['project_name']} is {overall_status} for KYC.")  # Adjust according to your column name
-                
+            st.write('*Use the search tool on the left-hand side to input an L2 address, project name, or admin email* 💬')
 
         ##display_results(filtered_df, ['project_name', 'email', 'l2_address', 'round_id', 'grant_id', 'status'], 
           ##      "This project is {status} for KYC.")
