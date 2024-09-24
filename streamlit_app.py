@@ -382,9 +382,9 @@ def main():
         search_term = st.session_state.get('search_term', '').strip()
     
         if search_term == '':
-            st.write('*Use the search tool on the left hand side to input an L2 address, project name, or admin email* 💬')
+            st.write('*Use the search tool on the left-hand side to input an L2 address, project name, or admin email* 💬')
         else:
-            if merged_df['grant_id'].astype(str).eq(search_term).any():
+            if merged_df['grant_id'].eq(search_term).any():
                 filtered_projects = merged_df[merged_df['grant_id'] == search_term]
             else:
                 email_search = merged_df['email'].str.contains(search_term, case=False, na=False)
@@ -395,7 +395,7 @@ def main():
             if not filtered_projects.empty:
                 for _, project_row in filtered_projects.iterrows():
                     st.write(project_row)
-    
+                    
                     kyc_results = []
                     kyc_email = project_row['kyc_email0']
                     if pd.notnull(kyc_email):
@@ -433,6 +433,7 @@ def main():
                         overall_status = 'rejected'
                     else:
                         overall_status = 'incomplete'
+    
                     project_name = project_row['project_name'] if 'project_name' in project_row else 'Project'
                     st.write(f"{project_name} is {overall_status} for KYC.")
             else:
