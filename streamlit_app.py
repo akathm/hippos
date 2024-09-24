@@ -264,9 +264,6 @@ def main():
         else:
             typeform_data = st.session_state.typeform_data
 
-    st.write('test')
-    st.write(typeform_data)
-
     option = st.sidebar.selectbox('Select an Option', ['Contribution Path', 'Superchain', 'Vendor', 'Grants Round'])
     search_term = st.sidebar.text_input('Enter search term (name, l2_address, or email)')
 
@@ -381,7 +378,9 @@ def main():
     
         kyc_emails = merged_df[merged_df['kyc_email0'].notnull()]['kyc_email0'].unique()
         kyb_emails = merged_df[merged_df['kyb_email0'].notnull()]['kyb_email0'].unique()
-    
+
+        search_term = st.text_input("Enter the Grant ID. You may use the table below to look it up, if you have an admin email or the name of the project.")
+        
         kyc_results = []
         for email in kyc_emails:
             status = all_contributors.loc[all_contributors['email'] == email, 'status'].values
@@ -414,17 +413,22 @@ def main():
                 else:
                     overall_status = 'incomplete'
                     
-        if not kyc_df.empty:
-            st.write("KYC emails")
-            st.write(kyc_df)
-        if not kyb_df.empty:
-            st.write("KYB emails")
-            st.write(kyb_df)
-        if not (kyc_df.empty and kyb_df.empty):
-            st.write(f"This contributor is {overall_status} for KYC.")
-            
-        else:
+        search_term = st.session_state.get('search_term', '')
+        if search_term.strip() == '':
             st.write('*Use the search tool on the left hand side to input an L2 address, project name, or admin email* 💬')
+        else:
+            # Display KYC and KYB data only if there are results
+            if not kyc_df.empty:
+                st.write("KYC emails")
+                st.write(kyc_df)
+    
+            if not kyb_df.empty:
+                st.write("KYB emails")
+                st.write(kyb_df)
+    
+            # Show the overall status message
+            if not (kyc_df.empty and kyb_df.empty):
+                st.write(f"This contributor is {overall_status} for KYC.")
             
 
         ##display_results(filtered_df, ['project_name', 'email', 'l2_address', 'round_id', 'grant_id', 'status'], 
