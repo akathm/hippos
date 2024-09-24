@@ -378,6 +378,9 @@ def main():
     
         kyc_emails = merged_df[merged_df['kyc_email0'].notnull()]['kyc_email0'].unique()
         kyb_emails = merged_df[merged_df['kyb_email0'].notnull()]['kyb_email0'].unique()
+
+        print(merged_df.columns)
+        print(projects_df)
     
         kyc_results = []
         for email in kyc_emails:
