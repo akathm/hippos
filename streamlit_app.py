@@ -146,7 +146,7 @@ def typeform_to_dataframe(response_data):
 
     for item in items:
         grant_id = item.get('hidden', {}).get('grant_id', np.nan)
-        submitted_at = item.get('submitted_at')
+        updated_at = item.get('updated_at')
 
         if pd.isna(grant_id):
             continue
@@ -190,7 +190,7 @@ def typeform_to_dataframe(response_data):
             entry['l2_address'] = l2_address_fallback
 
         if grant_id in form_entries:
-            if submitted_at > form_entries[grant_id]['submitted_at']:
+            if updated_at > form_entries[grant_id]['updated_at']:
                 form_entries[grant_id] = entry
         else:
             form_entries[grant_id] = entry
