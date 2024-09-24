@@ -378,57 +378,65 @@ def main():
     
         kyc_emails = merged_df[merged_df['kyc_email0'].notnull()]['kyc_email0'].unique()
         kyb_emails = merged_df[merged_df['kyb_email0'].notnull()]['kyb_email0'].unique()
-
-        search_term = st.text_input("Enter the Grant ID. You may use the table below to look it up, if you have an admin email or the name of the project.")
-        
-        kyc_results = []
-        for email in kyc_emails:
-            status = all_contributors.loc[all_contributors['email'] == email, 'status'].values
-            kyc_results.append({
-                'email': email,
-                'status': status[0] if status.size > 0 else 'not started'
-            })
-        kyc_df = pd.DataFrame(kyc_results)
     
-        kyb_results = []
-        for email in kyb_emails:
-            status = all_businesses.loc[all_businesses['email'] == email, 'status'].values
-            kyb_results.append({
-                'email': email,
-                'status': status[0] if status.size > 0 else 'not started'
-            })
-        kyb_df = pd.DataFrame(kyb_results)
-        
-        overall_status = 'not started'
-        if not kyc_df.empty or not kyb_df.empty:
-            if kyc_df.empty and kyb_df.empty:
-                overall_status = 'not started'
-            else:
-                all_kyc_statuses = kyc_df['status'].values
-                all_kyb_statuses = kyb_df['status'].values
-                if all(status == 'cleared' for status in all_kyc_statuses) and all(status == 'cleared' for status in all_kyb_statuses):
-                    overall_status = 'cleared'
-                elif any(status == 'rejected' for status in all_kyc_statuses) or any(status == 'rejected' for status in all_kyb_statuses):
-                    overall_status = 'rejected'
-                else:
-                    overall_status = 'incomplete'
-                    
-        search_term = st.session_state.get('search_term', '')
-        if search_term.strip() == '':
+        search_term = st.session_state.get('search_term', '').strip()
+    
+        if search_term == '':
             st.write('*Use the search tool on the left hand side to input an L2 address, project name, or admin email* 💬')
         else:
-            # Display KYC and KYB data only if there are results
-            if not kyc_df.empty:
-                st.write("KYC emails")
-                st.write(kyc_df)
+            if merged_df['grant_id'].astype(str).eq(search_term).any()
+                filtered_projects = merged_df[merged_df['grant_id'] == search_term]
+            else:
+                email_search = merged_df['email'].str.contains(search_term, case=False, na=False)
+                l2_address_search = merged_df['l2_address'].str.contains(search_term, case=False, na=False)
+                project_name_search = merged_df['project_name'].str.contains(search_term, case=False, na=False)
+                filtered_projects = merged_df[email_search | l2_address_search | project_name_search]
     
-            if not kyb_df.empty:
-                st.write("KYB emails")
-                st.write(kyb_df)
+            if not filtered_projects.empty:
+                for _, project_row in filtered_projects.iterrows():
+                    st.write(project_row)
     
-            # Show the overall status message
-            if not (kyc_df.empty and kyb_df.empty):
-                st.write(f"This contributor is {overall_status} for KYC.")
+                    kyc_results = []
+                    kyc_email = project_row['kyc_email0']
+                    if pd.notnull(kyc_email):
+                        status = all_contributors.loc[all_contributors['email'] == kyc_email, 'status'].values
+                        kyc_results.append({
+                            'email': kyc_email,
+                            'status': status[0] if status.size > 0 else 'not started'
+                        })
+                    kyc_df = pd.DataFrame(kyc_results)
+    
+                    kyb_results = []
+                    kyb_email = project_row['kyb_email0']
+                    if pd.notnull(kyb_email):
+                        status = all_businesses.loc[all_businesses['email'] == kyb_email, 'status'].values
+                        kyb_results.append({
+                            'email': kyb_email,
+                            'status': status[0] if status.size > 0 else 'not started'
+                        })
+                    kyb_df = pd.DataFrame(kyb_results)
+    
+                    if not kyc_df.empty:
+                        st.write("KYC emails")
+                        st.write(kyc_df)
+                    if not kyb_df.empty:
+                        st.write("KYB emails")
+                        st.write(kyb_df)
+    
+                    overall_status = 'not started'
+                    all_kyc_statuses = kyc_df['status'].values if not kyc_df.empty else []
+                    all_kyb_statuses = kyb_df['status'].values if not kyb_df.empty else []
+    
+                    if all(status == 'cleared' for status in all_kyc_statuses) and all(status == 'cleared' for status in all_kyb_statuses):
+                        overall_status = 'cleared'
+                    elif any(status == 'rejected' for status in all_kyc_statuses) or any(status == 'rejected' for status in all_kyb_statuses):
+                        overall_status = 'rejected'
+                    else:
+                        overall_status = 'incomplete'
+                    project_name = project_row['project_name'] if 'project_name' in project_row else 'Project'
+                    st.write(f"{project_name} is {overall_status} for KYC.")
+            else:
+                st.write("No matching projects found.")
             
 
         ##display_results(filtered_df, ['project_name', 'email', 'l2_address', 'round_id', 'grant_id', 'status'], 
