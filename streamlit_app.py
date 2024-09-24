@@ -377,6 +377,8 @@ def main():
         merged_df = projects_df.merge(typeform_data, on='grant_id', how='left')
         merged_df['l2_address'] = merged_df['l2_address_x'].combine_first(merged_df['l2_address_y'])
         merged_df = merged_df.drop(columns=['l2_address_x', 'l2_address_y'])
+        merged_df['project_id'] = merged_df['l2_address_y'].combine_first(merged_df['l2_address_x'])
+        merged_df = merged_df.drop(columns=['l2_address_x', 'l2_address_y'])
     
         kyc_emails = merged_df[merged_df['kyc_email0'].notnull()]['kyc_email0'].unique()
         kyb_emails = merged_df[merged_df['kyb_email0'].notnull()]['kyb_email0'].unique()
