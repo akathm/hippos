@@ -376,13 +376,12 @@ def main():
     elif option == 'Grants Round':
         typeform_data['grant_id'] = typeform_data['grant_id'].astype(str)
         projects_df['grant_id'] = projects_df['grant_id'].astype(str)
-
+    
         merged_df = projects_df.merge(typeform_data, on='grant_id', how='left')
     
         kyc_emails = merged_df[merged_df['kyc_email0'].notnull()]['kyc_email0'].unique()
         kyb_emails = merged_df[merged_df['kyb_email0'].notnull()]['kyb_email0'].unique()
     
-        st.write("KYC emails")
         kyc_results = []
         for email in kyc_emails:
             status = all_contributors.loc[all_contributors['email'] == email, 'status'].values
@@ -391,9 +390,7 @@ def main():
                 'status': status[0] if status.size > 0 else 'not started'
             })
         kyc_df = pd.DataFrame(kyc_results)
-        st.write(kyc_df)
     
-        st.write("KYB emails")
         kyb_results = []
         for email in kyb_emails:
             status = all_businesses.loc[all_businesses['email'] == email, 'status'].values
@@ -402,13 +399,32 @@ def main():
                 'status': status[0] if status.size > 0 else 'not started'
             })
         kyb_df = pd.DataFrame(kyb_results)
-        st.write(kyb_df)
-    
-        if kyc_df.empty and kyb_df.empty:
-            st.write("No KYC or KYB emails found.")
+        
+        overall_status = 'not started'
+        if not kyc_df.empty or not kyb_df.empty:
+            if kyc_df.empty and kyb_df.empty:
+                overall_status = 'not started'
+            else:
+                all_kyc_statuses = kyc_df['status'].values
+                all_kyb_statuses = kyb_df['status'].values
+                if all(status == 'cleared' for status in all_kyc_statuses) and all(status == 'cleared' for status in all_kyb_statuses):
+                    overall_status = 'cleared'
+                elif any(status == 'rejected' for status in all_kyc_statuses) or any(status == 'rejected' for status in all_kyb_statuses):
+                    overall_status = 'rejected'
+                else:
+                    overall_status = 'incomplete'
+                    
+        if not kyc_df.empty:
+            st.write("KYC emails")
+            st.write(kyc_df)
+        if not kyb_df.empty:
+            st.write("KYB emails")
+            st.write(kyb_df)
+        if not (kyc_df.empty and kyb_df.empty):
+            st.write(f"This contributor is {overall_status} for KYC.")
+            
         else:
             st.write('*Use the search tool on the left hand side to input an L2 address, project name, or admin email* 💬')
-
             
 
         ##display_results(filtered_df, ['project_name', 'email', 'l2_address', 'round_id', 'grant_id', 'status'], 
