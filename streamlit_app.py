@@ -408,7 +408,6 @@ def main():
             else:
                 overall_status = 'incomplete'
     
-        search_term = st.session_state.get('search_term', '')  # Get the search term
         if search_term == '':
             st.write('*Use the search tool on the left-hand side to input an L2 address, project name, or admin email* 💬')
         else:
