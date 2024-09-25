@@ -132,8 +132,12 @@ def process_cases(results):
 @st.cache_data(ttl=600)
 def tf_fetch(typeform_key, url):
     response = requests.get(url, headers={'Authorization': f'Bearer {typeform_key}'})
-    data = response.json()
-    return data
+    if response.status_code == 200:
+        data = response.json()
+        return data
+    else:
+        st.error(f"Failed to fetch Typeform data: {response.status_code}")
+        return None
 
 def typeform_to_dataframe(response_data):
     if isinstance(response_data, list):
