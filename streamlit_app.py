@@ -129,6 +129,7 @@ def process_cases(results):
             
     return pd.DataFrame(records)
 
+@st.cache_data(ttl=600)
 def tf_fetch(typeform_key, url):
     response = requests.get(url, headers={'Authorization': f'Bearer {typeform_key}'})
     data = response.json()
@@ -146,7 +147,7 @@ def typeform_to_dataframe(response_data):
 
     for item in items:
         grant_id = item.get('hidden', {}).get('grant_id', np.nan)
-        updated_at = item.get('submitted)at', np.nan)
+        updated_at = item.get('submitted_at', np.nan)
 
         if pd.isna(grant_id):
             continue
