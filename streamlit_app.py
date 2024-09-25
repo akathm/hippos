@@ -380,7 +380,7 @@ def main():
         kyc_emails = all_projects[all_projects['kyc_email0'].notnull()]['kyc_email0'].unique()
         kyb_emails = all_projects[all_projects['kyb_email0'].notnull()]['kyb_email0'].unique()
 
-        st.write(merged_df)
+        st.write(all_projects)
         st.write(typeform_data)
         st.write(kyc_emails)
         st.write(kyb_emails)
