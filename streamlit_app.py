@@ -129,7 +129,7 @@ def process_cases(results):
             
     return pd.DataFrame(records)
 
-@st.cache_data(ttl=600)
+##@st.cache_data(ttl=600)
 def tf_fetch(typeform_key, url):
     response = requests.get(url, headers={'Authorization': f'Bearer {typeform_key}'})
     data = response.json()
