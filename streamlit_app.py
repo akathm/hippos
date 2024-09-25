@@ -12,7 +12,7 @@ st.title('🗝️ KYC Lookup Tool')
 
 st.subheader('Project Status')
 with st.expander('About the Results'):
-    st.markdown('**Every project must complete KYC (or KYB for businesses) in order to receive tokens.**')
+    st.markdown('**Every project must complete KYC (or KYB for businesses) in order to receive tokens or join the Superchain.**')
     st.info('This tool can be used to lookup project status for a specific grant round or workflow. If you do not see the expected grants round here, or you see other unexpected results, please reach out to the Grant Program Manager to correct this issue.')
     st.markdown('**What should I do if a project I\'m talking to is not in *\"cleared\"* status?**')
     st.warning('🌕 *\"retry\"* means that the individual will need to re-attempt their KYC. They did not submit all documents, and should start over at kyc.optimism.io/  \n  \n 🔵 *\"incomplete\"* means we are waiting for 1+ business controllers to finish uploading their documents. Please direct them to check their emails.  \n  \n 🟠  *\"in review\"* means that this team or individual is waiting on a compliance review. Please let them know it may be up to 72 hours before a final decision is reached.    \n  \n 🛑 *\"rejected\"* teams will not be able to move forward with us. We cannot deliver tokens, and any signed agreements may be null and void. Reach out to compliance@optimism.io if you have any questions or suspect this decision may have been reached in error.')
@@ -361,6 +361,7 @@ def main():
     all_businesses.loc[(all_businesses['status'] == 'cleared') & (all_businesses['updated_at'] < one_year_ago_utc), 'status'] = 'expired'
     all_businesses = all_businesses[~(all_businesses['email'].isnull())]
     all_businesses.drop_duplicates(subset=['email', 'business_name'], inplace=True)
+
     
     if option in ['Superchain', 'Vendor']:
         search_and_display(all_businesses, search_term, ['business_name', 'email', 'l2_address', 'updated_at', 'status'], 
@@ -383,7 +384,11 @@ def main():
     
         kyc_emails = merged_df[merged_df['kyc_email0'].notnull()]['kyc_email0'].unique()
         kyb_emails = merged_df[merged_df['kyb_email0'].notnull()]['kyb_email0'].unique()
-    
+
+        st.write(merged_df)
+        st.write(kyc_emails)
+        st.write(kyb_emails)
+        
         kyc_results = []
         for email in kyc_emails:
             status = all_contributors.loc[all_contributors['email'] == email, 'status'].values
