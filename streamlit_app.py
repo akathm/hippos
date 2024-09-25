@@ -377,8 +377,28 @@ def main():
         all_projects['updated_at'] = pd.to_datetime(all_projects['updated_at'], errors='coerce')
         all_projects = all_projects.sort_values(by=['grant_id', 'updated_at']).drop_duplicates(subset='grant_id', keep='last')
     
-        kyc_emails = all_projects[all_projects['kyc_email0'].notnull()]['kyc_email0'].unique()
-        kyb_emails = all_projects[all_projects['kyb_email0'].notnull()]['kyb_email0'].unique()
+        kyc_emails_dict = {}
+        kyb_emails_dict = {}
+        
+        for index, row in all_projects.iterrows():
+            grant_id = row['grant_id']
+        
+            for i in range(10):
+                kyc_email = row.get(f'kyc_email{i}')
+                if pd.notna(kyc_email): 
+                    if grant_id not in kyc_emails_dict:
+                        kyc_emails_dict[grant_id] = set()
+                    kyc_emails_dict[grant_id].add(kyc_email)
+        
+            for i in range(5):
+                kyb_email = row.get(f'kyb_email{i}')
+                if pd.notna(kyb_email):
+                    if grant_id not in kyb_emails_dict:
+                        kyb_emails_dict[grant_id] = set()
+                    kyb_emails_dict[grant_id].add(kyb_email)
+        
+        kyc_emails = {grant_id: list(emails) for grant_id, emails in kyc_emails_dict.items()}
+        kyb_emails = {grant_id: list(emails) for grant_id, emails in kyb_emails_dict.items()}
 
         st.write(all_projects)
         st.write(typeform_data)
