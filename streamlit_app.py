@@ -414,11 +414,11 @@ def main():
             else:
                 overall_status = 'incomplete'
 
-        merged_df['status'] = overall_status
+        all_projects['status'] = overall_status
     
         if search_term:
-            search_and_display(merged_df, search_term, ['project_name', 'email', 'l2_address', 'updated_at', 'status'], 
-                               f"{merged_df['project_name'].iloc[0]} is {overall_status} for KYC.")
+            search_and_display(all_projects, search_term, ['project_name', 'email', 'l2_address', 'updated_at', 'status'], 
+                               f"{all_projects['project_name'].iloc[0]} is {overall_status} for KYC.")
     
             if not kyc_df.empty:
                 st.write("KYC emails")
