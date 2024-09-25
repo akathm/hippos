@@ -371,91 +371,94 @@ def main():
         typeform_data['grant_id'] = typeform_data['grant_id'].astype(str)
         projects_df['grant_id'] = projects_df['grant_id'].astype(str)
 
-        all_projects = pd.concat([typeform_data, projects_df], ignore_index=True)
-        print("Columns in all_projects:", all_projects.columns)
-        all_projects['l2_address'] = typeform_data['l2_address'].combine_first(all_projects['l2_address'])
-        all_projects['project_id'] = projects_df['project_id'].combine_first(all_projects['project_id'])
-        all_projects['updated_at'] = pd.to_datetime(all_projects['updated_at'], errors='coerce')
-        all_projects = all_projects.sort_values(by=['grant_id', 'updated_at']).drop_duplicates(subset='grant_id', keep='last')
-    
-        kyc_emails_dict = {}
-        kyb_emails_dict = {}
-        
-        for index, row in all_projects.iterrows():
-            grant_id = row['grant_id']
-        
-            for i in range(10):
-                kyc_email = row.get(f'kyc_email{i}')
-                if pd.notna(kyc_email): 
-                    if grant_id not in kyc_emails_dict:
-                        kyc_emails_dict[grant_id] = set()
-                    kyc_emails_dict[grant_id].add(kyc_email)
-        
-            for i in range(5):
-                kyb_email = row.get(f'kyb_email{i}')
-                if pd.notna(kyb_email):
-                    if grant_id not in kyb_emails_dict:
-                        kyb_emails_dict[grant_id] = set()
-                    kyb_emails_dict[grant_id].add(kyb_email)
-        
-        valid_grant_ids = all_projects[all_projects['grant_id'].notnull()]['grant_id'].unique()
-        kyc_emails = {grant_id: list(emails) for grant_id, emails in kyc_emails_dict.items() if grant_id in valid_grant_ids}
-        kyb_emails = {grant_id: list(emails) for grant_id, emails in kyb_emails_dict.items() if grant_id in valid_grant_ids}
-        
-        kyc_results = []
-        
-        for grant_id, emails in kyc_emails_dict.items():
-            for email in emails:
-                status = all_contributors.loc[all_contributors['email'] == email, 'status'].values
-                if status.size == 0:
-                    status = all_contributors.loc[all_contributors['email'] == email, 'status'].values
-                kyc_results.append({
-                    'email': email,
-                    'grant_id': grant_id,
-                    'status': status[0] if status.size > 0 else 'not started'
-                })
-        kyc_df = pd.DataFrame(kyc_results)
-        
-        kyb_results = []
-        for grant_id, emails in kyb_emails_dict.items():
-            for email in emails:
-                status = all_businesses.loc[all_businesses['email'] == email, 'status'].values
-                kyb_results.append({
-                    'email': email,
-                    'grant_id': grant_id, 
-                    'status': status[0] if status.size > 0 else 'not started'
-                })
-        kyb_df = pd.DataFrame(kyb_results)
-    
-        overall_status = 'not started'
-        if not kyc_df.empty or not kyb_df.empty:
-            all_kyc_statuses = kyc_df['status'].values
-            all_kyb_statuses = kyb_df['status'].values
-            if all(status == 'cleared' for status in all_kyc_statuses) and all(status == 'cleared' for status in all_kyb_statuses):
-                overall_status = 'cleared'
-            elif any(status == 'rejected' for status in all_kyc_statuses) or any(status == 'rejected' for status in all_kyb_statuses):
-                overall_status = 'rejected'
-            else:
-                overall_status = 'incomplete'
+        print("Typeform data columns:", typeform_data.columns.tolist())
+        print("Projects data columns:", projects_df.columns.tolist())
 
-        all_projects['status'] = overall_status
+        # all_projects = pd.concat([typeform_data, projects_df], ignore_index=True)
+        # print("Columns in all_projects:", all_projects.columns)
+        # all_projects['l2_address'] = typeform_data['l2_address'].combine_first(all_projects['l2_address'])
+        # all_projects['project_id'] = projects_df['project_id'].combine_first(all_projects['project_id'])
+        # all_projects['updated_at'] = pd.to_datetime(all_projects['updated_at'], errors='coerce')
+        # all_projects = all_projects.sort_values(by=['grant_id', 'updated_at']).drop_duplicates(subset='grant_id', keep='last')
     
-        if search_term:
-            search_and_display(all_projects, search_term, ['project_name', 'email', 'l2_address', 'updated_at', 'status'], 
-                               f"{all_projects['project_name'].iloc[0]} is {overall_status} for KYC.")
+        # kyc_emails_dict = {}
+        # kyb_emails_dict = {}
+        
+        # for index, row in all_projects.iterrows():
+        #     grant_id = row['grant_id']
+        
+        #     for i in range(10):
+        #         kyc_email = row.get(f'kyc_email{i}')
+        #         if pd.notna(kyc_email): 
+        #             if grant_id not in kyc_emails_dict:
+        #                 kyc_emails_dict[grant_id] = set()
+        #             kyc_emails_dict[grant_id].add(kyc_email)
+        
+        #     for i in range(5):
+        #         kyb_email = row.get(f'kyb_email{i}')
+        #         if pd.notna(kyb_email):
+        #             if grant_id not in kyb_emails_dict:
+        #                 kyb_emails_dict[grant_id] = set()
+        #             kyb_emails_dict[grant_id].add(kyb_email)
+        
+        # valid_grant_ids = all_projects[all_projects['grant_id'].notnull()]['grant_id'].unique()
+        # kyc_emails = {grant_id: list(emails) for grant_id, emails in kyc_emails_dict.items() if grant_id in valid_grant_ids}
+        # kyb_emails = {grant_id: list(emails) for grant_id, emails in kyb_emails_dict.items() if grant_id in valid_grant_ids}
+        
+        # kyc_results = []
+        
+        # for grant_id, emails in kyc_emails_dict.items():
+        #     for email in emails:
+        #         status = all_contributors.loc[all_contributors['email'] == email, 'status'].values
+        #         if status.size == 0:
+        #             status = all_contributors.loc[all_contributors['email'] == email, 'status'].values
+        #         kyc_results.append({
+        #             'email': email,
+        #             'grant_id': grant_id,
+        #             'status': status[0] if status.size > 0 else 'not started'
+        #         })
+        # kyc_df = pd.DataFrame(kyc_results)
+        
+        # kyb_results = []
+        # for grant_id, emails in kyb_emails_dict.items():
+        #     for email in emails:
+        #         status = all_businesses.loc[all_businesses['email'] == email, 'status'].values
+        #         kyb_results.append({
+        #             'email': email,
+        #             'grant_id': grant_id, 
+        #             'status': status[0] if status.size > 0 else 'not started'
+        #         })
+        # kyb_df = pd.DataFrame(kyb_results)
     
-            if not kyc_df.empty:
-                st.write("KYC emails")
-                st.write(kyc_df)
-    
-            if not kyb_df.empty:
-                st.write("KYB emails")
-                st.write(kyb_df)
-        else:
-            st.write('*Use the search tool on the left-hand side to input an L2 address, project name, or admin email* 💬')
+        # overall_status = 'not started'
+        # if not kyc_df.empty or not kyb_df.empty:
+        #     all_kyc_statuses = kyc_df['status'].values
+        #     all_kyb_statuses = kyb_df['status'].values
+        #     if all(status == 'cleared' for status in all_kyc_statuses) and all(status == 'cleared' for status in all_kyb_statuses):
+        #         overall_status = 'cleared'
+        #     elif any(status == 'rejected' for status in all_kyc_statuses) or any(status == 'rejected' for status in all_kyb_statuses):
+        #         overall_status = 'rejected'
+        #     else:
+        #         overall_status = 'incomplete'
 
-        ##display_results(filtered_df, ['project_name', 'email', 'l2_address', 'round_id', 'grant_id', 'status'], 
-          ##      "This project is {status} for KYC.")
+        # all_projects['status'] = overall_status
+    
+        # if search_term:
+        #     search_and_display(all_projects, search_term, ['project_name', 'email', 'l2_address', 'updated_at', 'status'], 
+        #                        f"{all_projects['project_name'].iloc[0]} is {overall_status} for KYC.")
+    
+        #     if not kyc_df.empty:
+        #         st.write("KYC emails")
+        #         st.write(kyc_df)
+    
+        #     if not kyb_df.empty:
+        #         st.write("KYB emails")
+        #         st.write(kyb_df)
+        # else:
+        #     st.write('*Use the search tool on the left-hand side to input an L2 address, project name, or admin email* 💬')
+
+        # #display_results(filtered_df, ['project_name', 'email', 'l2_address', 'round_id', 'grant_id', 'status'], 
+        #   #      "This project is {status} for KYC.")
 
 ## TESTING--------------------------------------------------
     
