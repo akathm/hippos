@@ -397,10 +397,12 @@ def main():
                         kyb_emails_dict[grant_id] = set()
                     kyb_emails_dict[grant_id].add(kyb_email)
         
-        kyc_emails = {grant_id: list(emails) for grant_id, emails in kyc_emails_dict.items()}
-        kyb_emails = {grant_id: list(emails) for grant_id, emails in kyb_emails_dict.items()}
+        valid_grant_ids = all_projects[all_projects['grant_id'].notnull()]['grant_id'].unique()
+        kyc_emails = {grant_id: list(emails) for grant_id, emails in kyc_emails_dict.items() if grant_id in valid_grant_ids}
+        kyb_emails = {grant_id: list(emails) for grant_id, emails in kyb_emails_dict.items() if grant_id in valid_grant_ids}
         
         kyc_results = []
+        
         for grant_id, emails in kyc_emails_dict.items():
             for email in emails:
                 status = all_contributors.loc[all_contributors['email'] == email, 'status'].values
