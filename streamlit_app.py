@@ -274,7 +274,6 @@ def main():
     projects_path = "grants.projects.csv"
     persons_path = "legacy.persons.csv"
     businesses_path = "legacy.businesses.csv"
-    form_path = "legacy.form.csv"
 
     contributors_df = fetch_csv(owner, repo, contributors_path, access_token)
     projects_df = fetch_csv(owner, repo, projects_path, access_token)
@@ -361,6 +360,8 @@ def main():
     all_businesses = all_businesses[~(all_businesses['email'].isnull())]
     all_businesses.drop_duplicates(subset=['email', 'business_name'], inplace=True)
 
+    st.write(form_entries)
+    st.write(typeform_data)
     
     if option in ['Superchain', 'Vendor']:
         search_and_display(all_businesses, search_term, ['business_name', 'email', 'l2_address', 'updated_at', 'status'], 
