@@ -386,6 +386,7 @@ def main():
         kyb_emails = merged_df[merged_df['kyb_email0'].notnull()]['kyb_email0'].unique()
 
         st.write(merged_df)
+        st.write(typeform_data)
         st.write(kyc_emails)
         st.write(kyb_emails)
         
