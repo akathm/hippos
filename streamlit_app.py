@@ -406,21 +406,25 @@ def main():
         st.write(kyb_emails)
         
         kyc_results = []
-        for email in kyc_emails:
-            status = all_contributors.loc[all_contributors['email'] == email, 'status'].values
-            kyc_results.append({
-                'email': email,
-                'status': status[0] if status.size > 0 else 'not started'
-            })
+        for grant_id, emails in kyc_emails_dict.items():
+            for email in emails:
+                status = all_contributors.loc[all_contributors['email'] == email, 'status'].values
+                kyc_results.append({
+                    'email': email,
+                    'grant_id': grant_id,
+                    'status': status[0] if status.size > 0 else 'not started'
+                })
         kyc_df = pd.DataFrame(kyc_results)
-    
+        
         kyb_results = []
-        for email in kyb_emails:
-            status = all_businesses.loc[all_businesses['email'] == email, 'status'].values
-            kyb_results.append({
-                'email': email,
-                'status': status[0] if status.size > 0 else 'not started'
-            })
+        for grant_id, emails in kyb_emails_dict.items():
+            for email in emails:
+                status = all_businesses.loc[all_businesses['email'] == email, 'status'].values
+                kyb_results.append({
+                    'email': email,
+                    'grant_id': grant_id,
+                    'status': status[0] if status.size > 0 else 'not started'
+                })
         kyb_df = pd.DataFrame(kyb_results)
     
         overall_status = 'not started'
