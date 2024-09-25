@@ -372,6 +372,7 @@ def main():
         projects_df['grant_id'] = projects_df['grant_id'].astype(str)
 
         all_projects = pd.concat([typeform_data, projects_df], ignore_index=True)
+        print("Columns in all_projects:", all_projects.columns)
         all_projects['l2_address'] = typeform_data['l2_address'].combine_first(all_projects['l2_address'])
         all_projects['project_id'] = projects_df['project_id'].combine_first(all_projects['project_id'])
         all_projects['updated_at'] = pd.to_datetime(all_projects['updated_at'], errors='coerce')
