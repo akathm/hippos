@@ -357,6 +357,16 @@ def main():
     all_businesses = all_businesses[~(all_businesses['email'].isnull())]
     all_businesses.drop_duplicates(subset=['email', 'business_name'], inplace=True)
 
+    all_projects = pd.concat([typeform_data, projects_df], ignore_index=True)
+    all_projects['l2_address'] = typeform_data['l2_address'].combine_first(all_projects['l2_address'])
+    all_projects['project_id'] = projects_df['project_id'].combine_first(all_projects['project_id'])
+    all_projects['updated_at'] = pd.to_datetime(all_projects['updated_at'], errors='coerce')
+    all_projects = all_projects.sort_values(by=['grant_id', 'updated_at']).drop_duplicates(subset='grant_id', keep='last')
+
+    st.write(all_projects)
+    st.write(typeform_data)
+    st.write(projects_df)
+
     
     if option in ['Superchain', 'Vendor']:
         search_and_display(all_businesses, search_term, ['business_name', 'email', 'l2_address', 'updated_at', 'status'], 
