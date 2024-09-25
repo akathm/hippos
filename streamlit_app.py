@@ -190,11 +190,6 @@ def typeform_to_dataframe(response_data):
         if pd.isna(entry['l2_address']) and l2_address_fallback:
             entry['l2_address'] = l2_address_fallback
 
-        if grant_id in form_entries:
-            if updated_at > form_entries[grant_id]['updated_at']:
-                form_entries[grant_id] = entry
-        else:
-            form_entries[grant_id] = entry
 
     return pd.DataFrame(form_entries.values())
 
@@ -375,15 +370,15 @@ def main():
     elif option == 'Grants Round':
         typeform_data['grant_id'] = typeform_data['grant_id'].astype(str)
         projects_df['grant_id'] = projects_df['grant_id'].astype(str)
+
+        all_projects = pd.concat([typeform_data, projects_df], ignore_inded=True)
+        all_projects['l2_address'] = typeform_data['l2_address'].combine_first(all_projects['l2_address'])
+        all_projects['project_id'] = projects_df['project_id'].combine_first(all_projects['project_id'])
+        all_projects['updated_at'] = pd.to_datetime(all_projects['updated_at'], errors='coerce')
+        all_projects = all_projects.sort_values(by=['grant_id', 'updated_at']).drop_duplicates(subset='grant_id', keep='last')
     
-        merged_df = projects_df.merge(typeform_data, on='grant_id', how='left')
-        merged_df['l2_address'] = merged_df['l2_address_x'].combine_first(merged_df['l2_address_y'])
-        merged_df = merged_df.drop(columns=['l2_address_x', 'l2_address_y'])
-        merged_df['project_id'] = merged_df['project_id_y'].combine_first(merged_df['project_id_x'])
-        merged_df = merged_df.drop(columns=['project_id_x', 'project_id_y'])
-    
-        kyc_emails = merged_df[merged_df['kyc_email0'].notnull()]['kyc_email0'].unique()
-        kyb_emails = merged_df[merged_df['kyb_email0'].notnull()]['kyb_email0'].unique()
+        kyc_emails = all_projects[all_projects['kyc_email0'].notnull()]['kyc_email0'].unique()
+        kyb_emails = all_projects[all_projects['kyb_email0'].notnull()]['kyb_email0'].unique()
 
         st.write(merged_df)
         st.write(typeform_data)
