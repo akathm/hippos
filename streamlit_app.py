@@ -404,6 +404,8 @@ def main():
         for grant_id, emails in kyc_emails_dict.items():
             for email in emails:
                 status = all_contributors.loc[all_contributors['email'] == email, 'status'].values
+                if status.size == 0:
+                    status = all_persons.loc[all_persons['email'] == email, 'status'].values
                 kyc_results.append({
                     'email': email,
                     'grant_id': grant_id,
@@ -417,7 +419,7 @@ def main():
                 status = all_businesses.loc[all_businesses['email'] == email, 'status'].values
                 kyb_results.append({
                     'email': email,
-                    'grant_id': grant_id,
+                    'grant_id': grant_id, 
                     'status': status[0] if status.size > 0 else 'not started'
                 })
         kyb_df = pd.DataFrame(kyb_results)
