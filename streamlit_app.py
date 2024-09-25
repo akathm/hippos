@@ -405,7 +405,7 @@ def main():
             for email in emails:
                 status = all_contributors.loc[all_contributors['email'] == email, 'status'].values
                 if status.size == 0:
-                    status = all_persons.loc[all_persons['email'] == email, 'status'].values
+                    status = all_contributors.loc[all_contributors['email'] == email, 'status'].values
                 kyc_results.append({
                     'email': email,
                     'grant_id': grant_id,
