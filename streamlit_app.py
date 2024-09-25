@@ -129,69 +129,69 @@ def process_cases(results):
             
     return pd.DataFrame(records)
 
-##@st.cache_data(ttl=600)
-def tf_fetch(typeform_key, url):
-    response = requests.get(url, headers={'Authorization': f'Bearer {typeform_key}'})
-    data = response.json()
-    return data
+# @st.cache_data(ttl=600)
+# def tf_fetch(typeform_key, url):
+#     response = requests.get(url, headers={'Authorization': f'Bearer {typeform_key}'})
+#     data = response.json()
+#     return data
 
-def typeform_to_dataframe(response_data):
-    if isinstance(response_data, list):
-        items = response_data
-    elif isinstance(response_data, dict):
-        items = response_data.get('items', [])
-    else:
-        raise ValueError("Unexpected response_data format")
+# def typeform_to_dataframe(response_data):
+#     if isinstance(response_data, list):
+#         items = response_data
+#     elif isinstance(response_data, dict):
+#         items = response_data.get('items', [])
+#     else:
+#         raise ValueError("Unexpected response_data format")
 
-    form_entries = {}
+#     form_entries = {}
 
-    for item in items:
-        grant_id = item.get('hidden', {}).get('grant_id', np.nan)
-        updated_at = item.get('submitted_at', np.nan)
+#     for item in items:
+#         grant_id = item.get('hidden', {}).get('grant_id', np.nan)
+#         updated_at = item.get('submitted_at', np.nan)
 
-        if pd.isna(grant_id):
-            continue
+#         if pd.isna(grant_id):
+#             continue
 
-        entry = {
-            'form_id': item.get('response_id', np.nan),
-            'project_id': item.get('hidden', {}).get('project_id', np.nan),
-            'grant_id': grant_id,
-            'l2_address': item.get('hidden', {}).get('l2_address', np.nan),
-            'updated_at': updated_at
-        }
+#         entry = {
+#             'form_id': item.get('response_id', np.nan),
+#             'project_id': item.get('hidden', {}).get('project_id', np.nan),
+#             'grant_id': grant_id,
+#             'l2_address': item.get('hidden', {}).get('l2_address', np.nan),
+#             'updated_at': updated_at
+#         }
 
-        kyc_emails = []
-        kyb_emails = []
-        kyb_started = False
-        l2_address_fallback = None
+#         kyc_emails = []
+#         kyb_emails = []
+#         kyb_started = False
+#         l2_address_fallback = None
 
-        for answer in item.get('answers', []):
-            field_id = answer.get('field', {}).get('id')
-            field_type = answer.get('field', {}).get('type')
+#         for answer in item.get('answers', []):
+#             field_id = answer.get('field', {}).get('id')
+#             field_type = answer.get('field', {}).get('type')
 
-            if field_id == 'ECV4jrkAuE1D' and field_type == 'short_text':
-                l2_address_fallback = answer.get('text', np.nan)
+#             if field_id == 'ECV4jrkAuE1D' and field_type == 'short_text':
+#                 l2_address_fallback = answer.get('text', np.nan)
 
-            elif field_type == 'email':
-                if kyb_started:
-                    kyb_emails.append(answer.get('email'))
-                else:
-                    kyc_emails.append(answer.get('email'))
+#             elif field_type == 'email':
+#                 if kyb_started:
+#                     kyb_emails.append(answer.get('email'))
+#                 else:
+#                     kyc_emails.append(answer.get('email'))
 
-            elif field_id == 'hhURZ3ovgZ9V' and field_type == 'number' and answer.get('number', 0) > 0:
-                kyb_started = True
+#             elif field_id == 'hhURZ3ovgZ9V' and field_type == 'number' and answer.get('number', 0) > 0:
+#                 kyb_started = True
 
-        for i in range(10):
-            entry[f'kyc_email{i}'] = kyc_emails[i] if i < len(kyc_emails) else np.nan
+#         for i in range(10):
+#             entry[f'kyc_email{i}'] = kyc_emails[i] if i < len(kyc_emails) else np.nan
 
-        for i in range(5):
-            entry[f'kyb_email{i}'] = kyb_emails[i] if i < len(kyb_emails) else np.nan
+#         for i in range(5):
+#             entry[f'kyb_email{i}'] = kyb_emails[i] if i < len(kyb_emails) else np.nan
 
-        if pd.isna(entry['l2_address']) and l2_address_fallback:
-            entry['l2_address'] = l2_address_fallback
+#         if pd.isna(entry['l2_address']) and l2_address_fallback:
+#             entry['l2_address'] = l2_address_fallback
 
 
-    return pd.DataFrame(form_entries.values())
+#     return pd.DataFrame(form_entries.values())
 
 
 
@@ -227,8 +227,8 @@ def main():
         st.session_state.inquiries_data = None
     if 'cases_data' not in st.session_state:
         st.session_state.cases_data = None
-    if 'typeform_data' not in st.session_state:
-        st.session_state.typeform_data = None
+    # if 'typeform_data' not in st.session_state:
+    #     st.session_state.typeform_data = None
 
     refresh_button = st.button("Refresh")
 
@@ -239,7 +239,7 @@ def main():
         typeform_data = typeform_to_dataframe(form_entries)
         st.session_state.inquiries_data = inquiries_data
         st.session_state.cases_data = cases_data
-        st.session_state.typeform_data = typeform_data
+        ##st.session_state.typeform_data = typeform_data
     else:
         if st.session_state.inquiries_data is None:
             inquiries_data = fetch_data(api_key, "https://app.withpersona.com/api/v1/inquiries")
@@ -253,12 +253,12 @@ def main():
         else:
             cases_data = st.session_state.cases_data
 
-        if 'typeform_data' not in st.session_state:
-            form_entries = tf_fetch(typeform_key, "https://api.typeform.com/forms/KoPTjofd/responses")
-            typeform_data = typeform_to_dataframe(form_entries)
-            st.session_state.typeform_data = typeform_data
-        else:
-            typeform_data = st.session_state.typeform_data
+        # if 'typeform_data' not in st.session_state:
+        #     form_entries = tf_fetch(typeform_key, "https://api.typeform.com/forms/KoPTjofd/responses")
+        #     typeform_data = typeform_to_dataframe(form_entries)
+        #     st.session_state.typeform_data = typeform_data
+        # else:
+        #     typeform_data = st.session_state.typeform_data
 
     option = st.sidebar.selectbox('Select an Option', ['Contribution Path', 'Superchain', 'Vendor', 'Grants Round'])
     search_term = st.sidebar.text_input('Enter search term (name, l2_address, or email)')
