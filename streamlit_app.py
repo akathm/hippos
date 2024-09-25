@@ -368,8 +368,8 @@ def main():
             search_and_display(all_contributors, search_term, ['avatar', 'email', 'l2_address', 'updated_at', 'status'], 
                        "This contributor is {status} for KYC.")
     elif option == 'Grants Round':
-        typeform_data['grant_id'] = typeform_data['grant_id'].astype(str)
-        projects_df['grant_id'] = projects_df['grant_id'].astype(str)
+        ##typeform_data['grant_id'] = typeform_data['grant_id'].astype(str)
+        ##projects_df['grant_id'] = projects_df['grant_id'].astype(str)
 
         print("Typeform data columns:", typeform_data.columns.tolist())
         print("Projects data columns:", projects_df.columns.tolist())
