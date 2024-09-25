@@ -399,11 +399,6 @@ def main():
         
         kyc_emails = {grant_id: list(emails) for grant_id, emails in kyc_emails_dict.items()}
         kyb_emails = {grant_id: list(emails) for grant_id, emails in kyb_emails_dict.items()}
-
-        st.write(all_projects)
-        st.write(typeform_data)
-        st.write(kyc_emails)
-        st.write(kyb_emails)
         
         kyc_results = []
         for grant_id, emails in kyc_emails_dict.items():
