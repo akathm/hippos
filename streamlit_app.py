@@ -360,7 +360,6 @@ def main():
     all_businesses = all_businesses[~(all_businesses['email'].isnull())]
     all_businesses.drop_duplicates(subset=['email', 'business_name'], inplace=True)
 
-    st.write(form_entries)
     st.write(typeform_data)
     
     if option in ['Superchain', 'Vendor']:
