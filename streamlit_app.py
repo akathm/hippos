@@ -371,8 +371,8 @@ def main():
         ##typeform_data['grant_id'] = typeform_data['grant_id'].astype(str)
         ##projects_df['grant_id'] = projects_df['grant_id'].astype(str)
 
-        print("Typeform data columns:", typeform_data.columns.tolist())
-        print("Projects data columns:", projects_df.columns.tolist())
+        st.write(typeform_data)
+        st.write(projects_df)
 
         # all_projects = pd.concat([typeform_data, projects_df], ignore_index=True)
         # print("Columns in all_projects:", all_projects.columns)
