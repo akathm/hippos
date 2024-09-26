@@ -404,9 +404,9 @@ def main():
         email_search = df['email'].str.contains(search_term, case=False, na=False)
         l2_address_search = df['l2_address'].str.contains(search_term, case=False, na=False)
         filtered_df = df[name_search | business_name_search | email_search | l2_address_search]
+        if not filtered_df.empty:
+            display_results(filtered_df, columns_to_display, message, status_column)
 
-        display_results(filtered_df, columns_to_display, message, status_column)
-        
 
     all_persons_df = pd.concat([persons_df, inquiries_df], ignore_index=True)
     all_persons_df['status'] = all_persons_df.sort_values('updated_at').groupby('email')['status'].transform('last')
