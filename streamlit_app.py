@@ -105,8 +105,6 @@ def process_cases(results):
         else:
             l2_address = np.nan
         
-        if status == 'approved':
-            status = 'cleared'
             
         if status == 'approved':
             status = '🟢 cleared'
