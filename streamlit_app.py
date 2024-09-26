@@ -142,7 +142,7 @@ def typeform_to_dataframe(response_data, existing_data=None):
     else:
         raise ValueError("Unexpected response_data format")
 
-    form_entries = {}
+    form_entries = []
 
     for item in items:
         grant_id = item.get('hidden', {}).get('grant_id', np.nan)
