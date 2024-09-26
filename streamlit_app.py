@@ -129,6 +129,79 @@ def process_cases(results):
             
     return pd.DataFrame(records)
 
+def tf_fetch(typeform_key, url):
+    response = requests.get(url, headers={'Authorization': f'Bearer {typeform_key}'})
+    data = response.json()
+    return data
+
+def typeform_to_dataframe(response_data, existing_data=None):
+    if isinstance(response_data, list):
+        items = response_data
+    elif isinstance(response_data, dict):
+        items = response_data.get('items', [])
+    else:
+        raise ValueError("Unexpected response_data format")
+
+    form_entries = {}
+
+    for item in items:
+        grant_id = item.get('hidden', {}).get('grant_id', np.nan)
+        updated_at = item.get('submitted_at', np.nan)
+
+        if pd.isna(grant_id):
+            continue
+
+        entry = {
+            'form_id': item.get('response_id', np.nan),
+            'project_id': item.get('hidden', {}).get('project_id', np.nan),
+            'grant_id': grant_id,
+            'l2_address': item.get('hidden', {}).get('l2_address', np.nan),
+            'updated_at': updated_at
+        }
+
+        kyc_emails = []
+        kyb_emails = []
+        kyb_started = False
+        l2_address_fallback = None
+
+        for answer in item.get('answers', []):
+            field_id = answer.get('field', {}).get('id')
+            field_type = answer.get('field', {}).get('type')
+
+            if field_id == 'ECV4jrkAuE1D' and field_type == 'short_text':
+                l2_address_fallback = answer.get('text', np.nan)
+
+            elif field_type == 'email':
+                if kyb_started:
+                    kyb_emails.append(answer.get('email'))
+                else:
+                    kyc_emails.append(answer.get('email'))
+
+            elif field_id == 'hhURZ3ovgZ9V' and field_type == 'number' and answer.get('number', 0) > 0:
+                kyb_started = True
+
+        for i in range(10):
+            entry[f'kyc_email{i}'] = kyc_emails[i] if i < len(kyc_emails) else np.nan
+
+        for i in range(5):
+            entry[f'kyb_email{i}'] = kyb_emails[i] if i < len(kyb_emails) else np.nan
+
+        if pd.isna(entry['l2_address']) and l2_address_fallback:
+            entry['l2_address'] = l2_address_fallback
+
+        form_entries[item['response_id']] = entry
+
+    new_df = pd.DataFrame(form_entries.values())
+    
+    if existing_data is not None:
+        new_entries = new_df[~new_df['form_id'].isin(existing_data['form_id'])]
+        updated_df = pd.concat([existing_data, new_entries], ignore_index=True)
+    else:
+        updated_df = new_df
+
+    return updated_df
+
+
 # @st.cache_data(ttl=600)
 # def tf_fetch(typeform_key, url):
 #     response = requests.get(url, headers={'Authorization': f'Bearer {typeform_key}'})
