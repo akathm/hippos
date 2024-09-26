@@ -189,10 +189,10 @@ def typeform_to_dataframe(response_data, existing_data=None):
         if pd.isna(entry['l2_address']) and l2_address_fallback:
             entry['l2_address'] = l2_address_fallback
 
-        form_entries[item['response_id']] = entry
+        form_entries.append(entry)
+        
+    new_df = pd.DataFrame(form_entries)
 
-    new_df = pd.DataFrame(form_entries.values())
-    
     if existing_data is not None:
         new_entries = new_df[~new_df['form_id'].isin(existing_data['form_id'])]
         updated_df = pd.concat([existing_data, new_entries], ignore_index=True)
@@ -300,8 +300,8 @@ def main():
         st.session_state.inquiries_data = None
     if 'cases_data' not in st.session_state:
         st.session_state.cases_data = None
-    # if 'typeform_data' not in st.session_state:
-    #     st.session_state.typeform_data = None
+    if 'typeform_data' not in st.session_state:
+        st.session_state.typeform_data = None
 
     refresh_button = st.button("Refresh")
 
@@ -312,7 +312,7 @@ def main():
         typeform_data = typeform_to_dataframe(form_entries)
         st.session_state.inquiries_data = inquiries_data
         st.session_state.cases_data = cases_data
-        ##st.session_state.typeform_data = typeform_data
+        st.session_state.typeform_data = typeform_data
     else:
         if st.session_state.inquiries_data is None:
             inquiries_data = fetch_data(api_key, "https://app.withpersona.com/api/v1/inquiries")
@@ -326,12 +326,13 @@ def main():
         else:
             cases_data = st.session_state.cases_data
 
-        # if 'typeform_data' not in st.session_state:
-        #     form_entries = tf_fetch(typeform_key, "https://api.typeform.com/forms/KoPTjofd/responses")
-        #     typeform_data = typeform_to_dataframe(form_entries)
-        #     st.session_state.typeform_data = typeform_data
-        # else:
-        #     typeform_data = st.session_state.typeform_data
+        if 'typeform_data' not in st.session_state:
+            form_entries = tf_fetch(typeform_key, "https://api.typeform.com/forms/KoPTjofd/responses")    
+            typeform_data = typeform_to_dataframe(form_entries, st.session_state.typeform_data)
+            st.session_state.typeform_data = typeform_data
+        else:
+            typeform_data = st.session_state.typeform_data
+    
 
     option = st.sidebar.selectbox('Select an Option', ['Contribution Path', 'Superchain', 'Vendor', 'Grants Round'])
     search_term = st.sidebar.text_input('Enter search term (name, l2_address, or email)')
