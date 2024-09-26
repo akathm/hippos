@@ -106,7 +106,7 @@ def process_cases(results):
             l2_address = np.nan
         
             
-        if status == 'approved':
+        if status == 'Approved':
             status = '🟢 cleared'
         if status in ['expired', 'pending', 'created', 'Waiting on UBOs']:
             status = '🔵 incomplete'
