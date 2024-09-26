@@ -397,6 +397,9 @@ def main():
             st.write(f"### {message.format(status='not clear')}")
 
     def search_and_display(df, search_term, columns_to_display, message, status_column='status', date_column='updated_at'):
+        if not search_term.strip():
+            display_results(pd.DataFrame(columns=columns_to_display), columns_to_display, message, status_column)
+            return
         df['updated_at'] = pd.to_datetime(df['updated_at'], errors='coerce')
         df['status'] = df['status'].fillna('not started')
         name_search = df.get('name', pd.Series([''] * len(df))).str.contains(search_term, case=False, na=False)
