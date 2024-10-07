@@ -551,7 +551,7 @@ def main():
     merged_df = merged_df[~(merged_df['email'].isnull() & merged_df['avatar'].isnull())]
     merged_df.drop_duplicates(subset=['email', 'round_id', 'op_amt'], inplace=True)
 
-    projects_list = ['Ambassadors', 'NumbaNERDs', 'SupportNERDs', 'Translators', 'Badgeholders', 'WLTA', 'WLTA Judge', 'ThriveCoin Incentive']
+    projects_list = ['Ambassadors', 'NumbaNERDs', 'SupportNERDs', 'Translators', 'Badgeholders', 'WLTA', 'WLTA Judge', 'Thank Optimism']
     projects_selection = st.multiselect('Select the Contributor Path', projects_list + ['Other'], projects_list + ['Other'])
 
     if 'Other' in projects_selection:
