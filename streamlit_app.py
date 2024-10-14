@@ -147,7 +147,7 @@ def typeform_to_dataframe(response_data, existing_data=None):
         updated_at = item.get('submitted_at', np.nan)
 
         if pd.isna(grant_id):
-            continue  # Skip entries without a grant_id
+            continue  # removing entries without a grant_id
 
         entry = {
             'form_id': item.get('response_id', np.nan),
@@ -166,6 +166,16 @@ def typeform_to_dataframe(response_data, existing_data=None):
 
         for i in range(10):
             entry[f'kyc_email{i}'] = kyc_emails[i] if i < len(kyc_emails) else np.nan
+
+        kyb_emails = []
+        for answer in item.get('answers', []):
+            field_type = answer.get('field', {}).get('type')
+
+            if field_type == 'email':
+                kyb_emails.append(answer.get('email'))
+
+        for i in range(5):
+            entry[f'kyb_email{i}'] = kyb_emails[i] if i < len(kyb_emails) else np.nan
 
         form_entries.append(entry)
 
