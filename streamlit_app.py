@@ -532,6 +532,15 @@ def main():
 
     st.write(typeform_data)
 
+    def tf_fetch(typeform_key, url):
+    response = requests.get(url, headers={'Authorization': f'Bearer {typeform_key}'})
+    if response.status_code != 200:
+        print(f"Error fetching data: {response.status_code}, {response.text}")
+        return None
+    data = response.json()
+    return data
+
+
 ##st.write(projects_df)
 ##st.write(all_projects)
     
