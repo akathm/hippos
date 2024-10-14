@@ -400,6 +400,7 @@ def main():
             return
         df['updated_at'] = pd.to_datetime(df['updated_at'], errors='coerce')
         df['status'] = df['status'].fillna('not started')
+        grant_id_search = df.get('grant_id', pd.Series([''] * len(df))).astype(str).str.contains(search_term, case=False, na=False)
         name_search = df.get('name', pd.Series([''] * len(df))).str.contains(search_term, case=False, na=False)
         business_name_search = df.get('business_name', pd.Series([''] * len(df))).str.contains(search_term, case=False, na=False)
         email_search = df['email'].str.contains(search_term, case=False, na=False)
