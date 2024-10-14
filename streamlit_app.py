@@ -324,10 +324,16 @@ def main():
         else:
             cases_data = st.session_state.cases_data
 
-        if 'typeform_data' not in st.session_state:
-            form_entries = tf_fetch(typeform_key, "https://api.typeform.com/forms/KoPTjofd/responses")    
-            typeform_data = typeform_to_dataframe(form_entries, st.session_state.typeform_data)
-            st.session_state.typeform_data = typeform_data
+        if st.session_state.typeform_data is None:
+            form_entries = tf_fetch(typeform_key, "https://api.typeform.com/forms/KoPTjofd/responses")
+            if form_entries is None:
+                st.error("Failed to fetch Typeform data.")
+            else:
+                typeform_data = typeform_to_dataframe(form_entries)
+                if typeform_data is not None and not typeform_data.empty:
+                    st.session_state.typeform_data = typeform_data
+                else:
+                    st.error("No entries returned from Typeform.")
         else:
             typeform_data = st.session_state.typeform_data
     
@@ -531,14 +537,6 @@ def main():
 ## TESTING--------------------------------------------------
 
     st.write(typeform_data)
-
-    def tf_fetch(typeform_key, url):
-    response = requests.get(url, headers={'Authorization': f'Bearer {typeform_key}'})
-    if response.status_code != 200:
-        print(f"Error fetching data: {response.status_code}, {response.text}")
-        return None
-    data = response.json()
-    return data
 
 
 ##st.write(projects_df)
