@@ -461,7 +461,7 @@ def main():
 
 ## TESTING--------------------------------------------------
 
-    st.write(typeform_data)
+    ##st.write(typeform_data)
 
 
 ##st.write(projects_df)
