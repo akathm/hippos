@@ -134,105 +134,60 @@ def tf_fetch(typeform_key, url):
     data = response.json()
     return data
 
-def extract_email_from_answers(answers, kyc_keywords, kyb_keywords):
-    kyc_emails = []
-    kyb_emails = []
-    
-    for answer in answers:
-        if answer.get('type') == 'email':
-            email = answer.get('email')
-            if any(keyword in answer['field'].get('ref', '').lower() for keyword in kyc_keywords):
-                kyc_emails.append(email)
-            elif any(keyword in answer['field'].get('ref', '').lower() for keyword in kyb_keywords):
-                kyb_emails.append(email)
-    
-    return (kyc_emails if kyc_emails else None, kyb_emails if kyb_emails else None)
+def typeform_to_dataframe(response_data, existing_data=None):
+    if isinstance(response_data, dict):
+        items = response_data.get('items', [])
+    else:
+        raise ValueError("Unexpected response_data format")
 
-def typeform_to_dataframe(responses):
-    data = []
+    form_entries = []
 
-    kyc_keywords = ['kyc']
-    kyb_keywords = ['kyb']
+    for item in items:
+        grant_id = item.get('hidden', {}).get('grant_id', np.nan)
+        updated_at = item.get('submitted_at', np.nan)
 
-    for response in responses:
-        hidden = response.get('hidden', {})
-        answers = response.get('answers', [])
-
-        kyc_emails, kyb_emails = extract_email_from_answers(answers, kyc_keywords, kyb_keywords)
+        if pd.isna(grant_id):
+            continue  # removing entries without a grant_id
 
         entry = {
-            'landing_id': response.get('landing_id'),
-            'token': response.get('token'),
-            'response_id': response.get('response_id'),
-            'response_type': response.get('response_type'),
-            'landed_at': response.get('landed_at'),
-            'submitted_at': response.get('submitted_at'),
-            'grant_id': hidden.get('grant_id'),
-            'l2_address': hidden.get('l2_address'),
-            'project_id': hidden.get('project_id'),
-            'kyc_emails': kyc_emails,
-            'kyb_emails': kyb_emails,
+            'form_id': item.get('response_id', np.nan),
+            'project_id': item.get('hidden', {}).get('project_id', np.nan),
+            'grant_id': grant_id,
+            'l2_address': item.get('hidden', {}).get('l2_address', np.nan),
+            'updated_at': updated_at
         }
 
-        data.append(entry)
-    typeform_data = pd.DataFrame(data)
-    return typeform_data
+        kyc_emails = []
+        for answer in item.get('answers', []):
+            field_type = answer.get('field', {}).get('type')
 
+            if field_type == 'email':
+                kyc_emails.append(answer.get('email'))
 
-# def typeform_to_dataframe(response_data, existing_data=None):
-#     if isinstance(response_data, dict):
-#         items = response_data.get('items', [])
-#     else:
-#         raise ValueError("Unexpected response_data format")
+        for i in range(10):
+            entry[f'kyc_email{i}'] = kyc_emails[i] if i < len(kyc_emails) else np.nan
 
-#     form_entries = []
+        kyb_emails = []
+        for answer in item.get('answers', []):
+            field_type = answer.get('field', {}).get('type')
 
-#     for item in items:
-#         grant_id = item.get('hidden', {}).get('grant_id', np.nan)
-#         updated_at = item.get('submitted_at', np.nan)
+            if field_type == 'email':
+                kyb_emails.append(answer.get('email'))
 
-#         if pd.isna(grant_id):
-#             continue  # removing entries without a grant_id
+        for i in range(5):
+            entry[f'kyb_email{i}'] = kyb_emails[i] if i < len(kyb_emails) else np.nan
 
-#         entry = {
-#             'form_id': item.get('response_id', np.nan),
-#             'project_id': item.get('hidden', {}).get('project_id', np.nan),
-#             'grant_id': grant_id,
-#             'l2_address': item.get('hidden', {}).get('l2_address', np.nan),
-#             'updated_at': updated_at
-#         }
+        form_entries.append(entry)
 
-#         kyc_emails = []
-#         for answer in item.get('answers', []):
-#             field_type = answer.get('field', {}).get('type')
+    new_df = pd.DataFrame(form_entries)
 
-#             if field_type == 'email':
-#                 kyc_emails.append(answer.get('email'))
+    if existing_data is not None:
+        new_entries = new_df[~new_df['form_id'].isin(existing_data['form_id'])]
+        updated_df = pd.concat([existing_data, new_entries], ignore_index=True)
+    else:
+        updated_df = new_df
 
-#         for i in range(10):
-#             entry[f'kyc_email{i}'] = kyc_emails[i] if i < len(kyc_emails) else np.nan
-
-#         kyb_emails = []
-#         for answer in item.get('answers', []):
-#             field_type = answer.get('field', {}).get('type')
-
-#             if field_type == 'email':
-#                 kyb_emails.append(answer.get('email'))
-
-#         for i in range(5):
-#             entry[f'kyb_email{i}'] = kyb_emails[i] if i < len(kyb_emails) else np.nan
-
-#         form_entries.append(entry)
-
-#     new_df = pd.DataFrame(form_entries)
-
-#     if existing_data is not None:
-#         new_entries = new_df[~new_df['form_id'].isin(existing_data['form_id'])]
-#         updated_df = pd.concat([existing_data, new_entries], ignore_index=True)
-#     else:
-#         updated_df = new_df
-
-#     return updated_df if not updated_df.empty else None
+    return updated_df if not updated_df.empty else None
 
 
 
