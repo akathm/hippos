@@ -364,6 +364,36 @@ def main():
     all_businesses = all_businesses[~(all_businesses['email'].isnull())]
     all_businesses.drop_duplicates(subset=['email', 'business_name'], inplace=True)
 
+    def generate_all_projects(typeform_data, all_contributors, all_businesses):
+        all_projects_rows = []
+        for index, row in typeform_data.iterrows():
+            grant_id = row['grant_id']
+            for i in range(10):
+                kyc_email = row.get(f'kyc_email{i}', np.nan)
+                if pd.notna(kyc_email):
+                    contributor_row = all_contributors.loc[all_contributors['email'] == kyc_email]
+                    status = contributor_row['status'].max() if not contributor_row.empty else 'not started'
+                    all_projects_rows.append({
+                        'grant_id': grant_id,
+                        'email': kyc_email,
+                        'status': status,
+                        'type': 'kyc'
+                    })
+            for i in range(5):
+                kyb_email = row.get(f'kyb_email{i}', np.nan)
+                if pd.notna(kyb_email):
+                    business_row = all_businesses.loc[all_businesses['email'] == kyb_email]
+                    status = business_row['status'].max() if not business_row.empty else 'not started'
+                    all_projects_rows.append({
+                        'grant_id': grant_id,
+                        'email': kyb_email,
+                        'status': status,
+                        'type': 'kyb'
+                    })
+        all_projects_df = pd.DataFrame(all_projects_rows)
+        return all_projects_df
+    all_projects = generate_all_projects(typeform_data, all_contributors, all_businesses)
+
     
     if option in ['Superchain', 'Vendor']:
         search_and_display(all_businesses, search_term, ['business_name', 'email', 'l2_address', 'updated_at', 'status'], 
@@ -461,9 +491,7 @@ def main():
 
 ## TESTING--------------------------------------------------
 
-    st.write(typeform_data)
-    st.write(all_businesses)
-    st.write(all_contributors)
+    st.write(all_projects)
 
 
 ##st.write(projects_df)
