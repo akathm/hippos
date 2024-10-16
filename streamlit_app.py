@@ -158,22 +158,18 @@ def typeform_to_dataframe(response_data, existing_data=None):
         }
 
         kyc_emails = []
+        kyb_emails = []
+
         for answer in item.get('answers', []):
             field_type = answer.get('field', {}).get('type')
-
             if field_type == 'email':
-                kyc_emails.append(answer.get('email'))
-
+                email = answer.get('email')
+                    if len(kyc_emails) < 10:
+                        kyc_emails.append(email)
+                    elif len(kyb_emails) < 5:
+                        kyb_emails.append(email)
         for i in range(10):
             entry[f'kyc_email{i}'] = kyc_emails[i] if i < len(kyc_emails) else np.nan
-
-        kyb_emails = []
-        for answer in item.get('answers', []):
-            field_type = answer.get('field', {}).get('type')
-
-            if field_type == 'email':
-                kyb_emails.append(answer.get('email'))
-
         for i in range(5):
             entry[f'kyb_email{i}'] = kyb_emails[i] if i < len(kyb_emails) else np.nan
 
@@ -494,7 +490,7 @@ def main():
 
 ## TESTING--------------------------------------------------
 
-##st.write(projects_df)
+    st.write(typeform_data)
 ##st.write(all_projects)
     
 ## Contributors-------------------------------------------------------
