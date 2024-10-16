@@ -462,6 +462,8 @@ def main():
 ## TESTING--------------------------------------------------
 
     st.write(typeform_data)
+    st.write(all_businesses)
+    st.write(all_contributors)
 
 
 ##st.write(projects_df)
