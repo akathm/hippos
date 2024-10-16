@@ -365,6 +365,9 @@ def main():
     all_businesses.drop_duplicates(subset=['email', 'business_name'], inplace=True)
 
     def generate_all_projects(typeform_data, all_contributors, all_businesses):
+        typeform_data['updated_at'] = pd.to_datetime(typeform_data['updated_at'], errors='coerce')
+        typeform_data_sorted = typeform_data.sort_values(by='updated_at', ascending=False)
+        typeform_data_unique = typeform_data_sorted.drop_duplicates(subset='grant_id', keep='first')
         all_projects_rows = []
         for index, row in typeform_data.iterrows():
             grant_id = row['grant_id']
