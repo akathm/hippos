@@ -159,18 +159,26 @@ def typeform_to_dataframe(response_data, existing_data=None):
 
         kyc_emails = []
         kyb_emails = []
+        found_kyb_field = False
+        number_of_kyb_emails = 0
 
         for answer in item.get('answers', []):
             field_type = answer.get('field', {}).get('type')
+            field_id = answer.get('field', {}).get('id')
 
             if field_type == 'email':
                 email = answer.get('email')
 
-                if email not in entry.values():
-                    if len(kyc_emails) < 10:
-                        kyc_emails.append(email)
-                    elif len(kyb_emails) < 5:
-                        kyb_emails.append(email)
+                if found_kyb_field:
+                    kyb_emails.append(email)
+                else:
+                    kyc_emails.append(email)
+
+            if field_type == 'number' and field_id == 'v8dfrNJiIQaZ':
+                number_of_kyb_emails = answer.get('number', 0)
+                found_kyb_field = True
+                
+        kyb_emails = kyb_emails[:number_of_kyb_emails]
 
         for i in range(10):
             entry[f'kyc_email{i}'] = kyc_emails[i] if i < len(kyc_emails) else np.nan
