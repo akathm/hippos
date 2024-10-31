@@ -482,12 +482,12 @@ def main():
     kyb_df['grant_id'] = kyb_df['grant_id'].astype(str)
 
     if option in ['Superchain', 'Vendor']:
-        if not search_term.empty:
+        if search_term:
             st.title('KYB Status')
         search_and_display(all_businesses, search_term, ['business_name', 'email', 'l2_address', 'updated_at', 'status'], 
                        "This team is {status} for KYB.")
     elif option == 'Contribution Path':
-        if not search_term.empty:
+        if search_term:
             st.title('KYC Status')
         if 'avatar' not in all_contributors.columns:
             all_contributors['avatar'] = ''
