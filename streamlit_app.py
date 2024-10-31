@@ -292,7 +292,7 @@ def main():
     option = st.sidebar.selectbox('Project Type', ['Superchain', 'Vendor', 'Contribution Path'])
     search_term = st.sidebar.text_input('Enter search term (name, l2_address, or email)')
     st.sidebar.header('Search by Grant')
-    grant_id_input = st.sidebar.text_input("Enter Grant ID")
+    grant_id_input = st.sidebar.text_input("Enter Grant ID").strip()
 
     inquiries_df = process_inquiries(inquiries_data)
     cases_df = process_cases(cases_data)
@@ -467,6 +467,7 @@ def main():
                 'status': status[0] if status.size > 0 else 'not started'
             })
     kyc_df = pd.DataFrame(kyc_results)
+    kyc_df['grant_id'] = kyc_df['grant_id'].astype(str)
         
     kyb_results = []
     for grant_id, emails in kyb_emails_dict.items():
@@ -478,13 +479,16 @@ def main():
                 'status': status[0] if status.size > 0 else 'not started'
             })
     kyb_df = pd.DataFrame(kyb_results)
+    kyb_df['grant_id'] = kyb_df['grant_id'].astype(str)
 
     if option in ['Superchain', 'Vendor']:
-        st.title('KYB Status')
+        if not search_term.empty
+            st.title('KYB Status')
         search_and_display(all_businesses, search_term, ['business_name', 'email', 'l2_address', 'updated_at', 'status'], 
                        "This team is {status} for KYB.")
     elif option == 'Contribution Path':
-        st.title('KYC Status')
+        if not search_term.empty
+            st.title('KYC Status')
         if 'avatar' not in all_contributors.columns:
             all_contributors['avatar'] = ''
         if search_term:
