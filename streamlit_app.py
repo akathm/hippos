@@ -130,9 +130,21 @@ def process_cases(results):
 
 @st.cache_data(ttl=600)
 def tf_fetch(typeform_key, url):
-    response = requests.get(url, headers={'Authorization': f'Bearer {typeform_key}'})
-    data = response.json()
-    return data
+    
+    all_data = []
+    after_token = None
+    
+    while True:
+        paginated_url = f"{url}&page_size=1000"
+        if after_token:
+            paginated_url += f"&after={after_token}"
+        response = requests.get(paginated_url, headers={'Authorization': f'Bearer {typeform_key}'})
+        data = response.json()
+        all_data.extend(data.get('items', []))
+        after_token = data.get('page', {}).get('token')
+        if not after_token:
+            break
+    return {'items': all_data}
 
 def typeform_to_dataframe(response_data, existing_data=None):
     if isinstance(response_data, dict):
