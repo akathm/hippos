@@ -433,6 +433,7 @@ def main():
     all_projects['project_id'] = projects_df['project_id'].combine_first(all_projects['project_id'])
     all_projects['updated_at'] = pd.to_datetime(all_projects['updated_at'], errors='coerce')
     all_projects = all_projects.sort_values(by=['grant_id', 'updated_at']).drop_duplicates(subset='grant_id', keep='last')
+    all_projects['grant_id'] = all_projects['grant_id'].astype(str).str.strip()
     
     kyc_emails_dict = {}
     kyb_emails_dict = {}
