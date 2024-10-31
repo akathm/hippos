@@ -489,22 +489,22 @@ def main():
                        "This contributor is {status} for KYC.")
     # elif option == 'Grants Round':
 
-   if grant_id_input:
-    grant_id_input = str(grant_id_input)
+    if grant_id_input:
+        grant_id_input = str(grant_id_input)
     
-    kyc_matches = kyc_df[kyc_df['grant_id'] == grant_id_input]
-    kyb_matches = kyb_df[kyb_df['grant_id'] == grant_id_input]
+        kyc_matches = kyc_df[kyc_df['grant_id'] == grant_id_input]
+        kyb_matches = kyb_df[kyb_df['grant_id'] == grant_id_input]
     
-    if kyc_matches.empty and kyb_matches.empty:
-        st.write("No form on file")
-    else:
-        if not kyc_matches.empty:
-            st.write("KYC Results:")
-            st.write(kyc_matches)
+        if kyc_matches.empty and kyb_matches.empty:
+            st.write("No form on file")
+        else:
+            if not kyc_matches.empty:
+                st.write("KYC Results:")
+                st.write(kyc_matches)
         
-        if not kyb_matches.empty:
-            st.write("KYB Results:")
-            st.write(kyb_matches) 
+            if not kyb_matches.empty:
+                st.write("KYB Results:")
+                st.write(kyb_matches) 
     
     #     overall_status = 'not started'
     #     if not kyc_df.empty or not kyb_df.empty:
