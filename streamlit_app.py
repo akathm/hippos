@@ -291,7 +291,7 @@ def main():
 
     option = st.sidebar.selectbox('Select an Option', ['Superchain', 'Vendor', 'Contribution Path'])
     search_term = st.sidebar.text_input('Enter search term (name, l2_address, or email)')
-    grant_id = st.sidebar.text_input('Enter Grant ID')
+    grant_id_input = st.sidebar.text_input("Enter Grant ID")
 
     inquiries_df = process_inquiries(inquiries_data)
     cases_df = process_cases(cases_data)
