@@ -289,7 +289,7 @@ def main():
             typeform_data = st.session_state.typeform_data
     
     st.sidebar.header('Database Lookup')
-    option = st.sidebar.selectbox('Select an Option', ['Superchain', 'Vendor', 'Contribution Path'])
+    option = st.sidebar.selectbox('Project Type', ['Superchain', 'Vendor', 'Contribution Path'])
     search_term = st.sidebar.text_input('Enter search term (name, l2_address, or email)')
     st.sidebar.header('Search by Grant')
     grant_id_input = st.sidebar.text_input("Enter Grant ID")
