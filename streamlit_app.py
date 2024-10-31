@@ -236,7 +236,7 @@ def fetch_csv(owner, repo, path, access_token):
 
 
 def main():
-    st.title('KYC Database')
+    ##st.title('KYC Database')
 
     api_key = st.secrets["persona"]["api_key"]
     typeform_key = st.secrets["typeform"]["typeform_key"]
@@ -480,24 +480,27 @@ def main():
     kyb_df = pd.DataFrame(kyb_results)
 
     if option in ['Superchain', 'Vendor']:
+        st.title('KYB Status')
         search_and_display(all_businesses, search_term, ['business_name', 'email', 'l2_address', 'updated_at', 'status'], 
                        "This team is {status} for KYB.")
     elif option == 'Contribution Path':
+        st.title('KYC Status')
         if 'avatar' not in all_contributors.columns:
             all_contributors['avatar'] = ''
         if search_term:
             search_and_display(all_contributors, search_term, ['avatar', 'email', 'l2_address', 'updated_at', 'status'], 
                        "This contributor is {status} for KYC.")
     # elif option == 'Grants Round':
-
+    
     if grant_id_input:
+        st.title('Grant Status')
         grant_id_input = str(grant_id_input)
     
         kyc_matches = kyc_df[kyc_df['grant_id'] == grant_id_input]
         kyb_matches = kyb_df[kyb_df['grant_id'] == grant_id_input]
     
         if kyc_matches.empty and kyb_matches.empty:
-            st.write("No form on file")
+            st.write("No form on file. Please ask the user to complete the KYC Form using the unique link sent in their award email.")
         else:
             if not kyc_matches.empty:
                 st.write("KYC Results:")
