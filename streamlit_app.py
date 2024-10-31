@@ -549,7 +549,7 @@ def main():
 
     # ##st.write(typeform_data)
     # st.write('all projects table')
-    st.write(all_projects)
+    ## st.write(all_projects)
     
 ## Contributors-------------------------------------------------------
 
