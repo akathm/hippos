@@ -437,8 +437,9 @@ def main():
         join="outer",
         ignore_index=False
     ).reset_index()
-    all_projects['l2_address'] = all_projects['l2_address'].combine_first(typeform_data['l2_address']).combine_first(projects_df['l2_address'])
-    all_projects['project_id'] = all_projects['project_id'].combine_first(typeform_data['project_id']).combine_first(projects_df['project_id'])
+    all_projects['l2_address'] = all_projects['l2_address_x'].combine_first(all_projects['l2_address_y'])
+    all_projects['project_id'] = all_projects['project_id_x'].combine_first(all_projects['project_id_y'])
+    all_projects = all_projects.drop(columns=['l2_address_x', 'l2_address_y', 'project_id_x', 'project_id_y'])
     all_projects['updated_at'] = pd.to_datetime(all_projects['updated_at'], errors='coerce')
     all_projects['grant_id'] = all_projects['grant_id'].astype(str).str.strip()
     all_projects = all_projects.sort_values(by=['grant_id', 'updated_at']).drop_duplicates(subset='grant_id', keep='last')
