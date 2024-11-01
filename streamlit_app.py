@@ -442,7 +442,6 @@ def main():
     all_projects['grant_id'] = all_projects['grant_id'].astype(str).str.strip()
     all_projects = all_projects.sort_values(by=['grant_id', 'updated_at']).drop_duplicates(subset='grant_id', keep='last')
     missing_grants = typeform_data[~typeform_data['grant_id'].isin(all_projects['grant_id'])]
-    st.write("Missing grant_ids from typeform_data in all_projects:", missing_grants)
     
     kyc_emails_dict = {}
     kyb_emails_dict = {}
