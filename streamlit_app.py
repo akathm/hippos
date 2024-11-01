@@ -555,7 +555,7 @@ def main():
 
 ## TESTING--------------------------------------------------
 
-    # ##st.write(typeform_data)
+    st.write(typeform_data)
     # st.write('all projects table')
     st.write(all_projects)
     st.write(kyc_df)
