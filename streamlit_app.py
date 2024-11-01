@@ -431,19 +431,18 @@ def main():
     typeform_data = typeform_data.drop_duplicates(subset='grant_id', keep='last')
     projects_df = projects_df.drop_duplicates(subset='grant_id', keep='last')
 
-    all_projects = pd.concat(
-        [typeform_data.set_index('grant_id'), projects_df.set_index('grant_id')],
-        axis=1, 
-        join="outer",
-        ignore_index=False
-    ).reset_index()
-    all_projects['l2_address'] = all_projects['l2_address_x'].combine_first(all_projects['l2_address_y'])
-    all_projects['project_id'] = all_projects['project_id_x'].combine_first(all_projects['project_id_y'])
-    all_projects = all_projects.drop(columns=['l2_address_x', 'l2_address_y', 'project_id_x', 'project_id_y'])
+    all_projects = pd.merge(
+        typeform_data,
+        projects_df,
+        on='grant_id',
+        how='outer',
+        suffixes=('_typeform', '_project')
+    )
+    all_projects['l2_address'] = all_projects['l2_address_typeform'].combine_first(all_projects['l2_address_project'])
+    all_projects['project_id'] = all_projects['project_id_typeform'].combine_first(all_projects['project_id_project'])
+    all_projects = all_projects.drop(columns=['l2_address_typeform', 'l2_address_project', 'project_id_typeform', 'project_id_project'])
     all_projects['updated_at'] = pd.to_datetime(all_projects['updated_at'], errors='coerce')
-    all_projects['grant_id'] = all_projects['grant_id'].astype(str).str.strip()
     all_projects = all_projects.sort_values(by=['grant_id', 'updated_at']).drop_duplicates(subset='grant_id', keep='last')
-    missing_grants = typeform_data[~typeform_data['grant_id'].isin(all_projects['grant_id'])]
     
     kyc_emails_dict = {}
     kyb_emails_dict = {}
