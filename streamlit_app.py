@@ -427,6 +427,9 @@ def main():
     
     typeform_data['grant_id'] = typeform_data['grant_id'].astype(str)
     projects_df['grant_id'] = projects_df['grant_id'].astype(str)
+    
+    typeform_data = typeform_data.drop_duplicates(subset='grant_id', keep='last')
+    projects_df = projects_df.drop_duplicates(subset='grant_id', keep='last')
 
     all_projects = pd.concat(
         [typeform_data.set_index('grant_id'), projects_df.set_index('grant_id')],
