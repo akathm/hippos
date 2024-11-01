@@ -556,11 +556,11 @@ def main():
 
 ## TESTING--------------------------------------------------
 
-    st.write(typeform_data)
-    # st.write('all projects table')
-    st.write(all_projects)
-    st.write(kyc_df)
-    st.write(kyb_df)
+    # st.write(typeform_data)
+    # # st.write('all projects table')
+    # st.write(all_projects)
+    # st.write(kyc_df)
+    # st.write(kyb_df)
     
 ## Contributors-------------------------------------------------------
 
