@@ -425,8 +425,8 @@ def main():
     #     return all_projects_df
     # all_projects = generate_all_projects(typeform_data, all_contributors, all_businesses)
     
-    typeform_data['grant_id'] = typeform_data['grant_id'].astype(str)
-    projects_df['grant_id'] = projects_df['grant_id'].astype(str)
+    typeform_data = typeform_data.sort_values(by='updated_at').drop_duplicates(subset='grant_id', keep='last')
+    projects_df = projects_df.sort_values(by='updated_at').drop_duplicates(subset='grant_id', keep='last')
     
     typeform_data = typeform_data.drop_duplicates(subset='grant_id', keep='last')
     projects_df = projects_df.drop_duplicates(subset='grant_id', keep='last')
