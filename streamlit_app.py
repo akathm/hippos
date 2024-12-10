@@ -186,6 +186,7 @@ def typeform_to_dataframe(response_data, existing_data=None):
 
             if field_type == 'email':
                 email = answer.get('email')
+                email = email.lower().strip()
 
                 if found_kyb_field:
                     kyb_emails.append(email)
